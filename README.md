@@ -4,13 +4,13 @@ A comprehensive web-based platform that empowers administrators to create and ma
 
 ---
 
-## 📋 Problem Statement
+##  Problem Statement
 
 Conducting elections manually or through informal means is often prone to errors, fraud, and inefficiency. Whether for national polls, school elections, or organizational decisions, paper-based or unstructured voting makes it difficult to ensure transparency, security, and accurate result tabulation. There is a critical need for a reliable, centralized platform that manages the entire voting process digitally.
 
 ---
 
-## 🎯 Objectives
+##  Objectives
 
 Develop a robust web-based Voting Management System using **ASP.NET Core MVC** that enables:
 
@@ -20,17 +20,17 @@ Develop a robust web-based Voting Management System using **ASP.NET Core MVC** t
 - **Real-time result** display and tracking after voting closes
 
 ### Key Features:
-✅ Voter registration and authentication (login/logout)  
-✅ Admin panel to create, edit, and manage elections  
-✅ Admin capability to add and remove candidates  
-✅ One-vote-per-election enforcement for voters  
-✅ Result display after election closure  
-✅ Election scheduling with configurable start and end dates  
-✅ Mobile-friendly, intuitive user interface  
+* Voter registration and authentication (login/logout)  
+* Admin panel to create, edit, and manage elections  
+* Admin capability to add and remove candidates  
+* One-vote-per-election enforcement for voters  
+* Result display after election closure  
+* Election scheduling with configurable start and end dates  
+* Mobile-friendly, intuitive user interface  
 
 ---
 
-## 📊 Requirements
+##  Requirements
 
 ### Functional Requirements:
 - ✓ Secure voter registration and login system
@@ -42,28 +42,28 @@ Develop a robust web-based Voting Management System using **ASP.NET Core MVC** t
 - ✓ Role-based access control (Admin/Voter)
 
 ### Non-Functional Requirements:
-- 🔒 **Security**: One vote per registered voter enforced at database level
-- ⚡ **Performance**: Results load within 2 seconds
-- 📱 **Usability**: Simple, intuitive, mobile-friendly interface
-- 🌐 **Availability**: System accessible 24/7 during active elections
-- 📈 **Scalability**: Supports multiple simultaneous elections
-- 🛡️ **Data Integrity**: Database constraints prevent duplicate votes
+-  **Security**: One vote per registered voter enforced at database level
+-  **Performance**: Results load within 2 seconds
+-  **Usability**: Simple, intuitive, mobile-friendly interface
+-  **Availability**: System accessible 24/7 during active elections
+-  **Scalability**: Supports multiple simultaneous elections
+-  **Data Integrity**: Database constraints prevent duplicate votes
 
 ---
 
-## 📐 Use Case Diagram
+##  Use Case Diagram
 
 ![Use Case Diagram](https://github.com/user-attachments/assets/b85ca03e-7fe6-4012-98df-758b04b28b40)
 
 ---
 
-## 🗄️ Database Schema
+##  Database Schema
 
 ![Database Diagram](https://github.com/user-attachments/assets/83f58cd5-f629-432e-8fb0-bf397569b038)
 
 ---
 
-## 📅 Project Timeline
+##  Project Timeline
 
 | Week | Tasks |
 |------|-------|
@@ -72,7 +72,7 @@ Develop a robust web-based Voting Management System using **ASP.NET Core MVC** t
 
 ---
 
-## 🛠️ Technology Stack
+##  Technology Stack
 
 - **Backend**: ASP.NET Core MVC
 - **Frontend**: HTML, CSS, JavaScript
