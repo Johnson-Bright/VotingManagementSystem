@@ -81,11 +81,7 @@ Develop a robust web-based Voting Management System using **ASP.NET Core MVC** t
 
 ---
 
-## 📝 License
 
-This project is open source and available under the MIT License.
-
----
 
 **Author**: Johnson-Bright  
 **Last Updated**: March 2026
