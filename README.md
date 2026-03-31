@@ -1,49 +1,39 @@
+# Voting Management System
 
-#1. Project name
-# VotingManagementSystem
-A web-based platform that allows administrators to create and manage elections while enabling registered voters to securely cast their votes and view results.
+## Introduction
+The Voting Management System is a comprehensive solution designed for managing electoral processes efficiently. It provides a user-friendly interface for both voters and election officials, ensuring transparency and ease of access during elections.
 
-#2. Problem statement
-Conducting elections manually or through informal means is often prone to errors, fraud, and inefficiency. Whether for national polls, school elections, or organizational decisions, paper-based or unstructured voting makes it difficult to ensure transparency, security, and accurate result tabulation. There is a need for a reliable, centralized platform that manages the entire voting process digitally.
+## Installation
+To install the Voting Management System, follow these steps:
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/Johnson-Bright/VotingManagementSystem.git
+   ```
+2. Navigate to the directory:
+   ```bash
+   cd VotingManagementSystem
+   ```
+3. Install the necessary dependencies:
+   ```bash
+   npm install
+   ```
 
-#3. Objective
-Develop a web-based Voting Management System using ASP.NET Core MVC that allows administrators to create and manage elections, register candidates, and oversee the voting process — while enabling verified voters to cast their votes securely and view results after voting closes.
+## Usage
+To start using the Voting Management System:
+1. Run the application:
+   ```bash
+   npm start
+   ```
+2. Access the application via your web browser at `http://localhost:3000`.
 
-This application can include features like:
--Voter registration and authentication (login/logout)
--Admin panel to create and manage elections and candidates
--Voters can cast one vote per election
--Result display after voting closes
--Election scheduling with start and end dates
+## Features
+- User registration and authentication
+- Secure voting mechanisms
+- Real-time results tracking
+- Admin dashboard for managing elections
 
-#4. Functional and non functional requirements
-Functional Requirements:
--Voter registration and login
--Admin can create, edit, and delete elections
--Admin can add and remove candidates
--Voter can cast one vote per election
--Results are displayed after the election closes
--Election scheduling with start and end dates
+## Contributing
+We welcome contributions from the community! Please read our [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on how to get involved.
 
-Non-Functional Requirements:
--Security: one vote per registered voter enforced at database level
--Performance: results load within 2 seconds
--Usability: simple, mobile-friendly interface
--Availability: system accessible 24/7 during active elections
--Scalability: supports multiple simultaneous elections
-
-#5. Usecase diagram
-
-<img width="900" height="675" alt="image" src="https://github.com/user-attachments/assets/b85ca03e-7fe6-4012-98df-758b04b28b40" />
-
-
-#6. Database diagram
-
-<img width="900" height="1120" alt="image" src="https://github.com/user-attachments/assets/83f58cd5-f629-432e-8fb0-bf397569b038" />
-
-
-
-#7. Project timeline
-Week	Tasks
-Week 1	Project setup, DB design, authentication, admin panel — create/manage elections & candidates
-Week 2	Voter dashboard, cast vote, results page, one-vote enforcement, UI polish, testing & documentation
+## License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
