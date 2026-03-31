@@ -83,5 +83,3 @@ Develop a robust web-based Voting Management System using **ASP.NET Core MVC** t
 
 
 
-**Author**: Johnson-Bright  
-**Last Updated**: March 2026
