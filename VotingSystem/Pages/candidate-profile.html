@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Profile — VoteMS Candidate</title>
+  <link rel="stylesheet" href="../styles.css"/>
+  <style>
+    .profile-avatar {
+      width: 90px; height: 90px; border-radius: 20px;
+      background: linear-gradient(135deg, var(--accent2), var(--accent));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.4rem; flex-shrink: 0;
+    }
+    .upload-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 0.82rem; color: var(--accent); cursor: pointer;
+      background: none; border: 1px dashed var(--accent);
+      border-radius: 8px; padding: 6px 14px; margin-top: 10px;
+      font-family: 'DM Sans', sans-serif; transition: background 0.18s;
+    }
+    .upload-btn:hover { background: #0D1A30; }
+    .section-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 28px; margin-bottom: 20px; }
+    .section-card h2 { margin-bottom: 20px; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="#" class="nav-logo"><div class="dot"></div> VoteMS</a>
+  <div class="nav-links">
+    <a href="candidate-dashboard.html">Dashboard</a>
+    <a href="candidate-profile.html" class="active">My Profile</a>
+    <a href="results.html">Results</a>
+    <a href="login.html">Sign out</a>
+  </div>
+</nav>
+
+<div class="page" style="max-width:760px;">
+
+  <h1>My Profile</h1>
+  <p class="subtitle">Manage your candidate information visible to voters</p>
+
+  <div class="alert alert-info">
+    ℹ️ Your profile is visible to all voters. Keep it accurate and up to date.
+  </div>
+
+  <!-- Photo & Identity -->
+  <div class="section-card">
+    <h2>Photo & Identity</h2>
+    <div class="flex gap-4 items-center mb-3">
+      <div class="profile-avatar">👩</div>
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700;">Alice Mutoni</div>
+        <div style="font-size:0.82rem;color:var(--muted);margin-top:2px;">Candidate ID: CD-00041</div>
+        <button class="upload-btn">📷 Upload Photo</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Personal Details -->
+  <div class="section-card">
+    <h2>Personal Details</h2>
+    <div class="grid-2">
+      <div class="form-group">
+        <label>First Name</label>
+        <input type="text" value="Alice" />
+      </div>
+      <div class="form-group">
+        <label>Last Name</label>
+        <input type="text" value="Mutoni" />
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Email Address</label>
+      <input type="email" value="alice@example.com" />
+    </div>
+    <div class="form-group">
+      <label>Phone / Contact</label>
+      <input type="text" placeholder="+250 7XX XXX XXX" />
+    </div>
+    <div class="form-group">
+      <label>Address</label>
+      <input type="text" placeholder="Your address" />
+    </div>
+  </div>
+
+  <!-- Campaign Info -->
+  <div class="section-card">
+    <h2>Campaign Information</h2>
+    <div class="form-group">
+      <label>Party / Affiliation</label>
+      <input type="text" value="Progressive Students Alliance" />
+    </div>
+    <div class="form-group">
+      <label>Position Contesting</label>
+      <select>
+        <option selected>Student Council President</option>
+        <option>Vice President</option>
+        <option>Secretary</option>
+        <option>Faculty Representative</option>
+        <option>Sports Captain</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Manifesto / Campaign Statement</label>
+      <textarea rows="5">I believe in transparent governance, student welfare, and academic excellence. My plan includes improving campus facilities, creating more internship opportunities, and ensuring every student's voice is heard in decision-making.</textarea>
+    </div>
+    <div class="form-group">
+      <label>Biography</label>
+      <textarea rows="4" placeholder="Tell voters about your background, achievements, and experience...">3rd year Computer Science student. Former class representative for 2 years. Organized 3 campus events and led the student welfare committee.</textarea>
+    </div>
+  </div>
+
+  <!-- Election Schedule (View Only) -->
+  <div class="section-card">
+    <h2>Election Schedule</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Election</th><th>Position</th><th>Start</th><th>End</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Student Council President 2025</strong></td>
+            <td class="text-muted">President</td>
+            <td class="text-muted">Mar 25</td>
+            <td style="color:var(--amber);">Mar 31</td>
+            <td><span class="badge badge-active">Active</span></td>
+          </tr>
+          <tr>
+            <td><strong>Faculty Representative Election</strong></td>
+            <td class="text-muted">Faculty Rep</td>
+            <td class="text-muted">Mar 29</td>
+            <td>Apr 10</td>
+            <td><span class="badge badge-active">Active</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="flex gap-3">
+    <button class="btn btn-primary" onclick="alert('Profile saved successfully!')">💾 Save Changes</button>
+    <a href="candidate-dashboard.html" class="btn btn-secondary">← Back to Dashboard</a>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard — VoteMS</title>
+  <link rel="stylesheet" href="../styles.css"/>
+  <style>
+    .election-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+    .election-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 24px;
+      transition: border-color 0.2s, transform 0.2s;
+      text-decoration: none; color: inherit; display: block;
+    }
+    .election-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .election-card.voted { border-color: var(--green); }
+    .election-meta { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
+    .election-title { font-family: 'Syne', sans-serif; font-size: 1.05rem; font-weight: 700; margin-bottom: 6px; }
+    .election-desc { font-size: 0.85rem; color: var(--muted); line-height: 1.5; margin-bottom: 16px; }
+    .election-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 14px; border-top: 1px solid var(--border); }
+    .election-stat { font-size: 0.8rem; color: var(--muted); }
+    .election-stat strong { color: var(--text); font-weight: 600; }
+    .voted-check { display: flex; align-items: center; gap: 6px; font-size: 0.82rem; color: var(--green); font-weight: 500; }
+    .deadline { font-size: 0.78rem; color: var(--muted); margin-top: 8px; }
+    .deadline span { color: var(--amber); }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="../index.html" class="nav-logo"><div class="dot"></div> VoteMS</a>
+  <div class="nav-links">
+    <a href="voter-dashboard.html" class="active">My Elections</a>
+    <a href="results.html">Results</a>
+    <a href="../index.html">Sign out</a>
+  </div>
+</nav>
+
+<div class="page">
+
+  <!-- Header -->
+  <div class="flex justify-between items-center mb-4">
+    <div>
+      <h1>Active Elections</h1>
+      <p class="subtitle">Select an election below to cast your vote</p>
+    </div>
+    <div class="card card-sm text-right" style="padding:14px 20px;">
+      <div class="text-sm text-muted">Logged in as</div>
+      <div style="font-weight:600;margin-top:2px;">John Doe</div>
+      <div class="mt-1"><span class="badge badge-voter">Voter</span></div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">Active Elections</div>
+      <div class="stat-value" style="color:var(--accent);">3</div>
+      <div class="stat-sub">Open for voting</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Votes Cast</div>
+      <div class="stat-value" style="color:var(--green);">1</div>
+      <div class="stat-sub">Out of 3 elections</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Closed Elections</div>
+      <div class="stat-value" style="color:var(--muted);">2</div>
+      <div class="stat-sub">Results available</div>
+    </div>
+  </div>
+
+  <!-- Elections -->
+  <h2>Open for Voting</h2>
+  <div class="election-grid mb-4">
+
+    <!-- Already voted -->
+    <div class="election-card voted">
+      <div class="election-meta">
+        <span class="badge badge-active">Active</span>
+        <div class="voted-check">✔ Voted</div>
+      </div>
+      <div class="election-title">Student Council President 2025</div>
+      <div class="election-desc">Vote for the next student council president who will represent student interests for the 2025–2026 academic year.</div>
+      <div class="deadline">Closes: <span>Mar 31, 2025 at 11:59 PM</span></div>
+      <div class="election-footer">
+        <div class="election-stat"><strong>4</strong> candidates</div>
+        <a href="results.html" class="btn btn-success btn-sm">View results</a>
+      </div>
+    </div>
+
+    <!-- Not voted -->
+    <a href="cast-vote.html" class="election-card">
+      <div class="election-meta">
+        <span class="badge badge-active">Active</span>
+        <span class="text-sm text-muted">Not voted</span>
+      </div>
+      <div class="election-title">Best Club of the Year Award</div>
+      <div class="election-desc">Cast your vote for the most outstanding club that contributed to campus life and student development this year.</div>
+      <div class="deadline">Closes: <span>Apr 5, 2025 at 6:00 PM</span></div>
+      <div class="election-footer">
+        <div class="election-stat"><strong>6</strong> candidates</div>
+        <span class="btn btn-primary btn-sm">Vote now →</span>
+      </div>
+    </a>
+
+    <a href="cast-vote.html" class="election-card">
+      <div class="election-meta">
+        <span class="badge badge-active">Active</span>
+        <span class="text-sm text-muted">Not voted</span>
+      </div>
+      <div class="election-title">Faculty Representative Election</div>
+      <div class="election-desc">Choose a faculty representative to liaise between students and the administration on academic matters.</div>
+      <div class="deadline">Closes: <span>Apr 10, 2025 at 5:00 PM</span></div>
+      <div class="election-footer">
+        <div class="election-stat"><strong>3</strong> candidates</div>
+        <span class="btn btn-primary btn-sm">Vote now →</span>
+      </div>
+    </a>
+  </div>
+
+  <!-- Closed elections -->
+  <h2>Closed Elections</h2>
+  <div class="election-grid">
+    <div class="election-card" style="opacity:0.7;">
+      <div class="election-meta">
+        <span class="badge badge-closed">Closed</span>
+      </div>
+      <div class="election-title">Sports Captain Vote — 2024</div>
+      <div class="election-desc">Election for sports team captains for the 2024 season across all disciplines.</div>
+      <div class="election-footer">
+        <div class="election-stat"><strong>312</strong> votes cast</div>
+        <a href="results.html" class="btn btn-secondary btn-sm">View results</a>
+      </div>
+    </div>
+    <div class="election-card" style="opacity:0.7;">
+      <div class="election-meta">
+        <span class="badge badge-closed">Closed</span>
+      </div>
+      <div class="election-title">Departmental Head Election</div>
+      <div class="election-desc">Annual election for departmental heads across all faculties.</div>
+      <div class="election-footer">
+        <div class="election-stat"><strong>528</strong> votes cast</div>
+        <a href="results.html" class="btn btn-secondary btn-sm">View results</a>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

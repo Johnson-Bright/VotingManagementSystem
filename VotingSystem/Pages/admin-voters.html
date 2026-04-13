@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Manage Voters — VoteMS Admin</title>
+  <link rel="stylesheet" href="../styles.css"/>
+  <style>
+    .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 230px; background: var(--bg2); border-right: 1px solid var(--border); padding: 24px 16px; display: flex; flex-direction: column; gap: 4px; z-index: 200; }
+    .sidebar-logo { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 800; display: flex; align-items: center; gap: 8px; padding: 8px 12px; margin-bottom: 20px; }
+    .sidebar-logo .dot { width: 10px; height: 10px; background: var(--accent); border-radius: 50%; }
+    .sidebar-section { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; padding: 8px 12px 4px; }
+    .sidebar-link { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; text-decoration: none; font-size: 0.88rem; font-weight: 500; color: var(--muted); transition: all 0.15s; }
+    .sidebar-link:hover { background: var(--bg3); color: var(--text); }
+    .sidebar-link.active { background: var(--bg3); color: var(--text); }
+    .sidebar-link .icon { font-size: 1rem; width: 20px; text-align: center; }
+    .sidebar-footer { margin-top: auto; padding-top: 16px; border-top: 1px solid var(--border); }
+    .main { margin-left: 230px; padding: 36px 40px; }
+    .search-bar { display: flex; gap: 10px; margin-bottom: 20px; }
+    .search-bar input { flex: 1; }
+  </style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-logo"><div class="dot"></div> VoteMS <span class="badge badge-admin" style="margin-left:auto;font-size:0.65rem;">Admin</span></div>
+  <div class="sidebar-section">Overview</div>
+  <a href="admin-dashboard.html" class="sidebar-link"><span class="icon">📊</span> Dashboard</a>
+  <a href="admin-elections.html" class="sidebar-link"><span class="icon">🗳️</span> Elections</a>
+  <a href="admin-voters.html" class="sidebar-link active"><span class="icon">👥</span> Voters</a>
+  <a href="admin-candidates.html" class="sidebar-link"><span class="icon">🏅</span> Candidates</a>
+  <div class="sidebar-section" style="margin-top:8px;">Reports</div>
+  <a href="results.html" class="sidebar-link"><span class="icon">📈</span> Results</a>
+  <a href="admin-reports.html" class="sidebar-link"><span class="icon">📋</span> Reports</a>
+  <div class="sidebar-footer">
+    <div style="font-size:0.82rem;color:var(--muted);padding:0 12px 10px;">Admin User</div>
+    <a href="login.html" class="sidebar-link"><span class="icon">🚪</span> Sign out</a>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="flex justify-between items-center mb-4">
+    <div>
+      <h1>Manage Voters</h1>
+      <p class="subtitle">View and manage all registered voter accounts</p>
+    </div>
+  </div>
+
+  <div class="stats-grid mb-4">
+    <div class="stat-card">
+      <div class="stat-label">Total Registered</div>
+      <div class="stat-value" style="color:var(--accent);">842</div>
+      <div class="stat-sub">All time</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Active Voters</div>
+      <div class="stat-value" style="color:var(--green);">634</div>
+      <div class="stat-sub">Voted at least once</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">New This Week</div>
+      <div class="stat-value" style="color:var(--amber);">12</div>
+      <div class="stat-sub">Registered recently</div>
+    </div>
+  </div>
+
+  <div class="search-bar">
+    <input type="text" placeholder="🔍  Search by name or email..."/>
+    <select style="width:auto;">
+      <option>All voters</option>
+      <option>Has voted</option>
+      <option>Not voted yet</option>
+    </select>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Name</th><th>Email</th><th>Voter ID</th><th>Registered</th><th>Votes Cast</th><th>Role</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Alice Mutoni</strong></td>
+          <td class="text-muted">alice@example.com</td>
+          <td class="text-muted" style="font-size:0.78rem;">VT-00123</td>
+          <td class="text-muted">Mar 28</td>
+          <td>2</td>
+          <td><span class="badge badge-voter">Voter</span></td>
+          <td><div style="display:flex;gap:6px;"><button class="btn btn-secondary btn-sm">View</button><button class="btn btn-danger btn-sm">Remove</button></div></td>
+        </tr>
+        <tr>
+          <td><strong>Bob Nkurunziza</strong></td>
+          <td class="text-muted">bob@example.com</td>
+          <td class="text-muted" style="font-size:0.78rem;">VT-00124</td>
+          <td class="text-muted">Mar 27</td>
+          <td>1</td>
+          <td><span class="badge badge-voter">Voter</span></td>
+          <td><div style="display:flex;gap:6px;"><button class="btn btn-secondary btn-sm">View</button><button class="btn btn-danger btn-sm">Remove</button></div></td>
+        </tr>
+        <tr>
+          <td><strong>Claire Uwase</strong></td>
+          <td class="text-muted">claire@example.com</td>
+          <td class="text-muted" style="font-size:0.78rem;">VT-00125</td>
+          <td class="text-muted">Mar 26</td>
+          <td>3</td>
+          <td><span class="badge badge-voter">Voter</span></td>
+          <td><div style="display:flex;gap:6px;"><button class="btn btn-secondary btn-sm">View</button><button class="btn btn-danger btn-sm">Remove</button></div></td>
+        </tr>
+        <tr>
+          <td><strong>David Hakizimana</strong></td>
+          <td class="text-muted">david@example.com</td>
+          <td class="text-muted" style="font-size:0.78rem;">VT-00126</td>
+          <td class="text-muted">Mar 25</td>
+          <td>0</td>
+          <td><span class="badge badge-voter">Voter</span></td>
+          <td><div style="display:flex;gap:6px;"><button class="btn btn-secondary btn-sm">View</button><button class="btn btn-danger btn-sm">Remove</button></div></td>
+        </tr>
+        <tr>
+          <td><strong>Emma Ingabire</strong></td>
+          <td class="text-muted">emma@example.com</td>
+          <td class="text-muted" style="font-size:0.78rem;">VT-00127</td>
+          <td class="text-muted">Mar 24</td>
+          <td>2</td>
+          <td><span class="badge badge-voter">Voter</span></td>
+          <td><div style="display:flex;gap:6px;"><button class="btn btn-secondary btn-sm">View</button><button class="btn btn-danger btn-sm">Remove</button></div></td>
+        </tr>
+        <tr>
+          <td><strong>Admin User</strong></td>
+          <td class="text-muted">admin@votems.com</td>
+          <td class="text-muted" style="font-size:0.78rem;">—</td>
+          <td class="text-muted">Jan 1</td>
+          <td>—</td>
+          <td><span class="badge badge-admin">Admin</span></td>
+          <td><div style="display:flex;gap:6px;"><button class="btn btn-secondary btn-sm" disabled>View</button></div></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="flex justify-between items-center mt-3">
+    <span class="text-muted text-sm">Showing 6 of 842 voters</span>
+    <div class="flex gap-2">
+      <button class="btn btn-secondary btn-sm">← Prev</button>
+      <button class="btn btn-secondary btn-sm">Next →</button>
+    </div>
+  </div>
+</main>
+</body>
+</html>

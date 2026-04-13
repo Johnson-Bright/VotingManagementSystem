@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login — VoteMS</title>
+  <link rel="stylesheet" href="../styles.css"/>
+  <style>
+    body { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+    .login-wrap { width: 100%; max-width: 420px; padding: 20px; }
+    .logo-block { text-align: center; margin-bottom: 36px; }
+    .logo-icon {
+      width: 56px; height: 56px; border-radius: 16px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem; margin: 0 auto 14px;
+    }
+    .logo-block h1 { font-size: 1.6rem; }
+    .logo-block p { color: var(--muted); font-size: 0.9rem; margin-top: 4px; }
+    .divider-or { display: flex; align-items: center; gap: 12px; margin: 20px 0; color: var(--muted); font-size: 0.8rem; }
+    .divider-or::before, .divider-or::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    .footer-link { text-align: center; font-size: 0.85rem; color: var(--muted); margin-top: 20px; }
+    .footer-link a { color: var(--accent); text-decoration: none; }
+    .footer-link a:hover { text-decoration: underline; }
+    .card { animation: fadeUp 0.4s ease; }
+    @keyframes fadeUp { from { opacity:0; transform: translateY(16px); } to { opacity:1; transform: translateY(0); } }
+  </style>
+</head>
+<body>
+<div class="login-wrap">
+  <div class="logo-block">
+    <div class="logo-icon">🗳️</div>
+    <h1>VoteMS</h1>
+    <p>Voting Management System</p>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-bottom:6px;">Welcome back</h2>
+    <p class="text-muted text-sm mb-3">Sign in to your account to continue</p>
+
+    <div class="alert alert-info">
+      🔒 Your vote is private and encrypted
+    </div>
+
+    <div class="form-group">
+      <label>Sign in as</label>
+      <div style="display:flex;gap:8px;" id="roleSelector">
+        <button type="button" class="role-btn active" data-role="voter" onclick="setRole('voter')">🗳️ Voter</button>
+        <button type="button" class="role-btn" data-role="candidate" onclick="setRole('candidate')">🏅 Candidate</button>
+        <button type="button" class="role-btn" data-role="admin" onclick="setRole('admin')">🛡️ Admin</button>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Email address</label>
+      <input type="email" placeholder="you@example.com" />
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" placeholder="••••••••" />
+    </div>
+
+    <div class="flex justify-between items-center mb-3" style="margin-top:-8px;">
+      <label style="display:flex;align-items:center;gap:8px;margin:0;cursor:pointer;">
+        <input type="checkbox" style="width:auto;margin:0;" /> <span>Remember me</span>
+      </label>
+      <a href="#" style="font-size:0.85rem;color:var(--accent);text-decoration:none;">Forgot password?</a>
+    </div>
+
+    <button class="btn btn-primary btn-full btn-lg" onclick="doLogin()">Sign in</button>
+  </div>
+
+  <div class="footer-link">
+    Don't have an account? <a href="register.html">Create one</a>
+  </div>
+
+  <style>
+    .role-btn {
+      flex: 1; padding: 9px 10px; border-radius: 8px; border: 1px solid var(--border);
+      background: var(--bg3); color: var(--muted); font-size: 0.82rem; font-weight: 500;
+      cursor: pointer; transition: all 0.18s; font-family: 'DM Sans', sans-serif;
+    }
+    .role-btn:hover { border-color: var(--accent); color: var(--text); }
+    .role-btn.active { background: var(--accent); border-color: var(--accent); color: white; }
+  </style>
+  <script>
+    let currentRole = 'voter';
+    function setRole(role) {
+      currentRole = role;
+      document.querySelectorAll('.role-btn').forEach(b => b.classList.toggle('active', b.dataset.role === role));
+    }
+    function doLogin() {
+      if (currentRole === 'admin') location.href = 'admin-dashboard.html';
+      else if (currentRole === 'candidate') location.href = 'candidate-dashboard.html';
+      else location.href = 'voter-dashboard.html';
+    }
+  </script>
+</div>
+</body>
+</html>

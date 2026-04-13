@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Results — VoteMS</title>
+  <link rel="stylesheet" href="../styles.css"/>
+  <style>
+    .result-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 22px; margin-bottom: 14px;
+      display: flex; align-items: center; gap: 18px;
+    }
+    .result-card.winner { border-color: var(--green); background: #0A1E18; }
+    .rank {
+      font-family: 'Syne', sans-serif; font-size: 1.4rem; font-weight: 800;
+      min-width: 36px; text-align: center; color: var(--muted);
+    }
+    .rank.first { color: var(--amber); }
+    .result-avatar {
+      width: 48px; height: 48px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--accent2), var(--accent));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem; flex-shrink: 0;
+    }
+    .result-info { flex: 1; min-width: 0; }
+    .result-name { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; margin-bottom: 2px; }
+    .result-party { font-size: 0.8rem; color: var(--muted); margin-bottom: 8px; }
+    .result-votes { font-family: 'Syne', sans-serif; font-size: 1.2rem; font-weight: 800; min-width: 80px; text-align: right; }
+    .result-pct { font-size: 0.78rem; color: var(--muted); }
+    .winner-crown { font-size: 1.1rem; margin-left: 6px; }
+    .election-selector {
+      display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 28px;
+    }
+    .election-tab {
+      padding: 8px 18px; border-radius: 8px; font-size: 0.85rem; font-weight: 500;
+      cursor: pointer; border: 1px solid var(--border); background: var(--card);
+      color: var(--muted); transition: all 0.2s;
+    }
+    .election-tab.active { background: var(--accent); border-color: var(--accent); color: white; }
+    .election-tab:hover:not(.active) { border-color: var(--accent); color: var(--text); }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="../index.html" class="nav-logo"><div class="dot"></div> VoteMS</a>
+  <div class="nav-links">
+    <a href="voter-dashboard.html">Elections</a>
+    <a href="results.html" class="active">Results</a>
+    <a href="../index.html">Sign out</a>
+  </div>
+</nav>
+
+<div class="page" style="max-width:800px;">
+
+  <h1>Election Results</h1>
+  <p class="subtitle">Final results for completed elections</p>
+
+  <div class="election-selector">
+    <div class="election-tab active">Student Council President 2025</div>
+    <div class="election-tab">Sports Captain Vote 2024</div>
+    <div class="election-tab">Departmental Head Election</div>
+  </div>
+
+  <!-- Summary card -->
+  <div class="card mb-4">
+    <div class="flex justify-between items-center flex-wrap gap-3">
+      <div>
+        <h2 style="margin-bottom:4px;">Student Council President 2025</h2>
+        <span class="badge badge-closed">Closed — Mar 31, 2025</span>
+      </div>
+      <div class="stats-grid" style="margin:0;gap:12px;">
+        <div class="stat-card" style="padding:14px 18px;">
+          <div class="stat-label">Total votes</div>
+          <div class="stat-value" style="font-size:1.5rem;color:var(--accent);">428</div>
+        </div>
+        <div class="stat-card" style="padding:14px 18px;">
+          <div class="stat-label">Turnout</div>
+          <div class="stat-value" style="font-size:1.5rem;color:var(--green);">74%</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results list -->
+  <div class="result-card winner">
+    <div class="rank first">1</div>
+    <div class="result-avatar">👩</div>
+    <div class="result-info">
+      <div class="result-name">Alice Mutoni <span class="winner-crown">🏆</span></div>
+      <div class="result-party">Progressive Students Alliance</div>
+      <div class="progress-wrap">
+        <div class="progress-bar"><div class="progress-fill green" style="width:52%"></div></div>
+      </div>
+    </div>
+    <div>
+      <div class="result-votes" style="color:var(--green);">223</div>
+      <div class="result-pct" style="text-align:right;">52.1%</div>
+    </div>
+  </div>
+
+  <div class="result-card">
+    <div class="rank">2</div>
+    <div class="result-avatar">👨</div>
+    <div class="result-info">
+      <div class="result-name">Bob Nkurunziza</div>
+      <div class="result-party">Students Forward Movement</div>
+      <div class="progress-wrap">
+        <div class="progress-bar"><div class="progress-fill" style="width:31%"></div></div>
+      </div>
+    </div>
+    <div>
+      <div class="result-votes">133</div>
+      <div class="result-pct" style="text-align:right;">31.1%</div>
+    </div>
+  </div>
+
+  <div class="result-card">
+    <div class="rank">3</div>
+    <div class="result-avatar">👩</div>
+    <div class="result-info">
+      <div class="result-name">Claire Uwase</div>
+      <div class="result-party">Independent</div>
+      <div class="progress-wrap">
+        <div class="progress-bar"><div class="progress-fill purple" style="width:11%"></div></div>
+      </div>
+    </div>
+    <div>
+      <div class="result-votes">47</div>
+      <div class="result-pct" style="text-align:right;">11%</div>
+    </div>
+  </div>
+
+  <div class="result-card">
+    <div class="rank">4</div>
+    <div class="result-avatar">👨</div>
+    <div class="result-info">
+      <div class="result-name">David Hakizimana</div>
+      <div class="result-party">United Campus Party</div>
+      <div class="progress-wrap">
+        <div class="progress-bar"><div class="progress-fill amber" style="width:6%"></div></div>
+      </div>
+    </div>
+    <div>
+      <div class="result-votes">25</div>
+      <div class="result-pct" style="text-align:right;">5.8%</div>
+    </div>
+  </div>
+
+  <div class="mt-3 flex gap-3">
+    <a href="voter-dashboard.html" class="btn btn-secondary">← Back to elections</a>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Vote Submitted — VoteMS</title>
+  <link rel="stylesheet" href="../styles.css"/>
+  <style>
+    body { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+    .wrap { text-align: center; max-width: 460px; padding: 20px; }
+    .success-icon {
+      width: 80px; height: 80px; border-radius: 50%;
+      background: #0D2620; border: 2px solid var(--green);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2rem; margin: 0 auto 24px;
+      animation: pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes pop { from { transform: scale(0); opacity:0; } to { transform: scale(1); opacity:1; } }
+    .receipt {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 20px; margin: 24px 0;
+      text-align: left;
+    }
+    .receipt-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 0.88rem; }
+    .receipt-row:last-child { border-bottom: none; }
+    .receipt-row span:first-child { color: var(--muted); }
+    .receipt-row span:last-child { font-weight: 500; }
+    h1 { color: var(--green); }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="success-icon">✔</div>
+  <h1>Vote submitted!</h1>
+  <p class="text-muted" style="margin-top:8px;">Your vote has been securely recorded. Thank you for participating.</p>
+
+  <div class="receipt">
+    <div style="font-size:0.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;">Vote receipt</div>
+    <div class="receipt-row">
+      <span>Election</span>
+      <span>Best Club of the Year Award</span>
+    </div>
+    <div class="receipt-row">
+      <span>Voted for</span>
+      <span style="color:var(--accent);">Tech Innovation Club</span>
+    </div>
+    <div class="receipt-row">
+      <span>Time</span>
+      <span>Mar 30, 2025 — 14:32</span>
+    </div>
+    <div class="receipt-row">
+      <span>Status</span>
+      <span style="color:var(--green);">✔ Confirmed</span>
+    </div>
+  </div>
+
+  <div class="alert alert-info" style="text-align:left;">
+    🔒 Your vote is anonymous. This receipt only confirms participation, not your choice.
+  </div>
+
+  <div class="flex gap-3 mt-3" style="justify-content:center;">
+    <a href="voter-dashboard.html" class="btn btn-secondary">← Back to elections</a>
+    <a href="results.html" class="btn btn-primary">View results</a>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cast Vote — VoteMS</title>
+  <link rel="stylesheet" href="../styles.css"/>
+  <style>
+    .candidate-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; margin-bottom: 32px; }
+    .candidate-card {
+      background: var(--card); border: 2px solid var(--border);
+      border-radius: var(--radius-lg); padding: 22px;
+      cursor: pointer; transition: all 0.2s; position: relative;
+    }
+    .candidate-card:hover { border-color: var(--accent); }
+    .candidate-card.selected { border-color: var(--accent); background: #0D1A30; }
+    .candidate-card.selected::after {
+      content: '✔'; position: absolute; top: 14px; right: 14px;
+      width: 24px; height: 24px; background: var(--accent); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; color: white;
+    }
+    .candidate-avatar {
+      width: 56px; height: 56px; border-radius: 14px;
+      background: linear-gradient(135deg, var(--accent2), var(--accent));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem; margin-bottom: 14px;
+    }
+    .candidate-name { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; margin-bottom: 4px; }
+    .candidate-party { font-size: 0.8rem; color: var(--accent); font-weight: 500; margin-bottom: 8px; }
+    .candidate-bio { font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
+    .confirm-box {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 24px;
+      display: none;
+    }
+    .confirm-box.show { display: block; }
+    .confirm-name { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 700; color: var(--accent); }
+    .breadcrumb { font-size: 0.82rem; color: var(--muted); margin-bottom: 24px; display: flex; align-items: center; gap: 6px; }
+    .breadcrumb a { color: var(--muted); text-decoration: none; }
+    .breadcrumb a:hover { color: var(--text); }
+    .warning-box {
+      background: #2A2010; border: 1px solid #3D3010;
+      border-radius: 10px; padding: 14px 18px;
+      font-size: 0.85rem; color: var(--amber);
+      margin-bottom: 24px; display: flex; align-items: center; gap: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="../index.html" class="nav-logo"><div class="dot"></div> VoteMS</a>
+  <div class="nav-links">
+    <a href="voter-dashboard.html">Elections</a>
+    <a href="results.html">Results</a>
+    <a href="../index.html">Sign out</a>
+  </div>
+</nav>
+
+<div class="page" style="max-width:900px;">
+
+  <div class="breadcrumb">
+    <a href="voter-dashboard.html">← Elections</a>
+    <span>/</span>
+    <span>Best Club of the Year Award</span>
+  </div>
+
+  <h1 style="margin-bottom:6px;">Best Club of the Year Award</h1>
+  <p class="subtitle">Select one candidate to cast your vote. This action cannot be undone.</p>
+
+  <div class="warning-box">
+    ⚠️ You can only vote once. Please review your choice carefully before submitting.
+  </div>
+
+  <h2>Select a candidate</h2>
+  <div class="candidate-grid" id="candidateGrid">
+
+    <div class="candidate-card" onclick="selectCandidate(this, 'Tech Innovation Club', 'Technology & Engineering')">
+      <div class="candidate-avatar">💻</div>
+      <div class="candidate-name">Tech Innovation Club</div>
+      <div class="candidate-party">Technology & Engineering</div>
+      <div class="candidate-bio">Organized 12 workshops, 3 hackathons, and helped 80+ students land internships this year.</div>
+    </div>
+
+    <div class="candidate-card" onclick="selectCandidate(this, 'Drama & Arts Society', 'Arts & Culture')">
+      <div class="candidate-avatar">🎭</div>
+      <div class="candidate-name">Drama & Arts Society</div>
+      <div class="candidate-party">Arts & Culture</div>
+      <div class="candidate-bio">Produced 4 full-scale productions and hosted the annual cultural festival attended by 500+ people.</div>
+    </div>
+
+    <div class="candidate-card" onclick="selectCandidate(this, 'Environmental Green Club', 'Sustainability')">
+      <div class="candidate-avatar">🌱</div>
+      <div class="candidate-name">Environmental Green Club</div>
+      <div class="candidate-party">Sustainability</div>
+      <div class="candidate-bio">Led campus recycling drive, planted 200 trees, and reduced cafeteria waste by 40%.</div>
+    </div>
+
+    <div class="candidate-card" onclick="selectCandidate(this, 'Sports & Fitness Club', 'Athletics')">
+      <div class="candidate-avatar">⚽</div>
+      <div class="candidate-name">Sports & Fitness Club</div>
+      <div class="candidate-party">Athletics</div>
+      <div class="candidate-bio">Won 3 inter-university championships and organized a marathon with 300 participants.</div>
+    </div>
+
+    <div class="candidate-card" onclick="selectCandidate(this, 'Debate & Public Speaking', 'Academic')">
+      <div class="candidate-avatar">🎙️</div>
+      <div class="candidate-name">Debate & Public Speaking</div>
+      <div class="candidate-party">Academic</div>
+      <div class="candidate-bio">Represented the university at 6 national competitions, winning Best Speaker twice.</div>
+    </div>
+
+    <div class="candidate-card" onclick="selectCandidate(this, 'Community Outreach Club', 'Social Impact')">
+      <div class="candidate-avatar">🤝</div>
+      <div class="candidate-name">Community Outreach Club</div>
+      <div class="candidate-party">Social Impact</div>
+      <div class="candidate-bio">Completed 1,200+ volunteer hours and mentored 60 underprivileged high school students.</div>
+    </div>
+
+  </div>
+
+  <!-- Confirm box -->
+  <div class="confirm-box" id="confirmBox">
+    <h2 style="margin-bottom:6px;">Confirm your vote</h2>
+    <p class="text-muted text-sm mb-3">You are about to vote for:</p>
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin-bottom:20px;">
+      <div class="confirm-name" id="selectedName">—</div>
+      <div class="text-sm text-muted" id="selectedParty">—</div>
+    </div>
+    <div class="alert alert-danger">
+      ⚠️ This vote is final and cannot be changed once submitted.
+    </div>
+    <div class="flex gap-3">
+      <button class="btn btn-secondary" onclick="clearSelection()">← Change selection</button>
+      <a href="vote-success.html" class="btn btn-primary" style="flex:1;justify-content:center;">Submit vote ✔</a>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  let selected = null;
+  function selectCandidate(el, name, party) {
+    document.querySelectorAll('.candidate-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    selected = { name, party };
+    document.getElementById('selectedName').textContent = name;
+    document.getElementById('selectedParty').textContent = party;
+    document.getElementById('confirmBox').classList.add('show');
+    document.getElementById('confirmBox').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+  function clearSelection() {
+    document.querySelectorAll('.candidate-card').forEach(c => c.classList.remove('selected'));
+    document.getElementById('confirmBox').classList.remove('show');
+    selected = null;
+  }
+</script>
+</body>
+</html>

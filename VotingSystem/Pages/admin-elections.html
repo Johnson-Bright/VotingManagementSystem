@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Manage Elections — VoteMS Admin</title>
+  <link rel="stylesheet" href="../styles.css"/>
+  <style>
+    .sidebar {
+      position: fixed; left: 0; top: 0; bottom: 0; width: 230px;
+      background: var(--bg2); border-right: 1px solid var(--border);
+      padding: 24px 16px; display: flex; flex-direction: column; gap: 4px; z-index: 200;
+    }
+    .sidebar-logo { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 800; display: flex; align-items: center; gap: 8px; padding: 8px 12px; margin-bottom: 20px; }
+    .sidebar-logo .dot { width: 10px; height: 10px; background: var(--accent); border-radius: 50%; }
+    .sidebar-section { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; padding: 8px 12px 4px; }
+    .sidebar-link { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; text-decoration: none; font-size: 0.88rem; font-weight: 500; color: var(--muted); transition: all 0.15s; }
+    .sidebar-link:hover { background: var(--bg3); color: var(--text); }
+    .sidebar-link.active { background: var(--bg3); color: var(--text); }
+    .sidebar-link .icon { font-size: 1rem; width: 20px; text-align: center; }
+    .sidebar-footer { margin-top: auto; padding-top: 16px; border-top: 1px solid var(--border); }
+    .main { margin-left: 230px; padding: 36px 40px; }
+    /* Modal */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 300; display: none; align-items: center; justify-content: center; padding: 20px; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 32px; width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; }
+    .modal h2 { margin-bottom: 6px; }
+    .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
+  </style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-logo"><div class="dot"></div> VoteMS <span class="badge badge-admin" style="margin-left:auto;font-size:0.65rem;">Admin</span></div>
+  <div class="sidebar-section">Overview</div>
+  <a href="admin-dashboard.html" class="sidebar-link"><span class="icon">📊</span> Dashboard</a>
+  <a href="admin-elections.html" class="sidebar-link active"><span class="icon">🗳️</span> Elections</a>
+  <a href="admin-voters.html" class="sidebar-link"><span class="icon">👥</span> Voters</a>
+  <a href="admin-candidates.html" class="sidebar-link"><span class="icon">🏅</span> Candidates</a>
+  <div class="sidebar-section" style="margin-top:8px;">Reports</div>
+  <a href="results.html" class="sidebar-link"><span class="icon">📈</span> Results</a>
+  <a href="admin-reports.html" class="sidebar-link"><span class="icon">📋</span> Reports</a>
+  <div class="sidebar-footer">
+    <div style="font-size:0.82rem;color:var(--muted);padding:0 12px 10px;">Admin User</div>
+    <a href="login.html" class="sidebar-link"><span class="icon">🚪</span> Sign out</a>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="flex justify-between items-center mb-4">
+    <div>
+      <h1>Manage Elections</h1>
+      <p class="subtitle">Create, edit, and control all elections</p>
+    </div>
+    <button class="btn btn-primary" onclick="document.getElementById('newModal').classList.add('open')">+ New Election</button>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Title</th><th>Status</th><th>Candidates</th><th>Votes</th><th>Start</th><th>End</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Student Council President 2025</strong></td>
+          <td><span class="badge badge-active">Active</span></td>
+          <td>4</td><td>223</td>
+          <td class="text-muted">Mar 25</td><td style="color:var(--amber);">Mar 31</td>
+          <td>
+            <div style="display:flex;gap:6px;">
+              <button class="btn btn-secondary btn-sm" onclick="document.getElementById('editModal').classList.add('open')">Edit</button>
+              <button class="btn btn-secondary btn-sm" onclick="document.getElementById('candidatesModal').classList.add('open')">Candidates</button>
+              <button class="btn btn-danger btn-sm">Close</button>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td><strong>Best Club of the Year Award</strong></td>
+          <td><span class="badge badge-active">Active</span></td>
+          <td>6</td><td>89</td>
+          <td class="text-muted">Mar 28</td><td>Apr 5</td>
+          <td>
+            <div style="display:flex;gap:6px;">
+              <button class="btn btn-secondary btn-sm" onclick="document.getElementById('editModal').classList.add('open')">Edit</button>
+              <button class="btn btn-secondary btn-sm" onclick="document.getElementById('candidatesModal').classList.add('open')">Candidates</button>
+              <button class="btn btn-danger btn-sm">Close</button>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td><strong>Faculty Representative Election</strong></td>
+          <td><span class="badge badge-active">Active</span></td>
+          <td>3</td><td>45</td>
+          <td class="text-muted">Mar 29</td><td>Apr 10</td>
+          <td>
+            <div style="display:flex;gap:6px;">
+              <button class="btn btn-secondary btn-sm" onclick="document.getElementById('editModal').classList.add('open')">Edit</button>
+              <button class="btn btn-secondary btn-sm" onclick="document.getElementById('candidatesModal').classList.add('open')">Candidates</button>
+              <button class="btn btn-danger btn-sm">Close</button>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td><strong>Sports Captain Vote 2024</strong></td>
+          <td><span class="badge badge-closed">Closed</span></td>
+          <td>5</td><td>312</td>
+          <td class="text-muted">Jan 10</td><td class="text-muted">Jan 20</td>
+          <td>
+            <div style="display:flex;gap:6px;">
+              <a href="results.html" class="btn btn-success btn-sm">Results</a>
+              <button class="btn btn-danger btn-sm">Delete</button>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td><strong>Departmental Head Election</strong></td>
+          <td><span class="badge badge-closed">Closed</span></td>
+          <td>4</td><td>528</td>
+          <td class="text-muted">Feb 1</td><td class="text-muted">Feb 7</td>
+          <td>
+            <div style="display:flex;gap:6px;">
+              <a href="results.html" class="btn btn-success btn-sm">Results</a>
+              <button class="btn btn-danger btn-sm">Delete</button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</main>
+
+<!-- New Election Modal -->
+<div class="modal-overlay" id="newModal">
+  <div class="modal">
+    <h2>Create New Election</h2>
+    <p class="text-muted text-sm mb-3">Fill in the details for the new election</p>
+    <div class="form-group"><label>Election Title</label><input type="text" placeholder="e.g. Student Council President 2025"/></div>
+    <div class="form-group"><label>Description</label><textarea rows="3" placeholder="Brief description of this election..."></textarea></div>
+    <div class="grid-2">
+      <div class="form-group"><label>Start Date</label><input type="date"/></div>
+      <div class="form-group"><label>End Date</label><input type="date"/></div>
+    </div>
+    <div class="form-group">
+      <label>Status</label>
+      <select><option>Draft</option><option>Active</option></select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="document.getElementById('newModal').classList.remove('open')">Cancel</button>
+      <button class="btn btn-primary">Create Election</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Election Modal -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <h2>Edit Election</h2>
+    <p class="text-muted text-sm mb-3">Update election details</p>
+    <div class="form-group"><label>Election Title</label><input type="text" value="Student Council President 2025"/></div>
+    <div class="form-group"><label>Description</label><textarea rows="3">Vote for the next student council president...</textarea></div>
+    <div class="grid-2">
+      <div class="form-group"><label>Start Date</label><input type="date" value="2025-03-25"/></div>
+      <div class="form-group"><label>End Date</label><input type="date" value="2025-03-31"/></div>
+    </div>
+    <div class="form-group">
+      <label>Status</label>
+      <select><option>Draft</option><option selected>Active</option><option>Closed</option></select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="document.getElementById('editModal').classList.remove('open')">Cancel</button>
+      <button class="btn btn-primary">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Candidates Modal -->
+<div class="modal-overlay" id="candidatesModal">
+  <div class="modal">
+    <h2>Manage Candidates</h2>
+    <p class="text-muted text-sm mb-3">Student Council President 2025</p>
+    <div class="table-wrap mb-3">
+      <table>
+        <thead><tr><th>Name</th><th>Party</th><th></th></tr></thead>
+        <tbody>
+          <tr><td>Alice Mutoni</td><td class="text-muted">Progressive Students Alliance</td><td><button class="btn btn-danger btn-sm">Remove</button></td></tr>
+          <tr><td>Bob Nkurunziza</td><td class="text-muted">Students Forward Movement</td><td><button class="btn btn-danger btn-sm">Remove</button></td></tr>
+          <tr><td>Claire Uwase</td><td class="text-muted">Independent</td><td><button class="btn btn-danger btn-sm">Remove</button></td></tr>
+          <tr><td>David Hakizimana</td><td class="text-muted">United Campus Party</td><td><button class="btn btn-danger btn-sm">Remove</button></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <hr class="divider"/>
+    <p style="font-size:0.85rem;font-weight:600;margin-bottom:12px;">Add new candidate</p>
+    <div class="grid-2">
+      <div class="form-group"><label>Full Name</label><input type="text" placeholder="Full name"/></div>
+      <div class="form-group"><label>Party / Affiliation</label><input type="text" placeholder="Party name"/></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="document.getElementById('candidatesModal').classList.remove('open')">Close</button>
+      <button class="btn btn-primary">Add Candidate</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', function(e) {
+      if (e.target === this) this.classList.remove('open');
+    });
+  });
+</script>
+</body>
+</html>
