@@ -1,0 +1,29 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "VotingMIS", "VotingMIS", "{8B45F20C-A827-9B23-6D23-159F16D6FCF2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VotingMIS", "VotingMIS\VotingMIS\VotingMIS.csproj", "{CD8A6248-3D31-3701-703C-55ED340D68E1}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{CD8A6248-3D31-3701-703C-55ED340D68E1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CD8A6248-3D31-3701-703C-55ED340D68E1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CD8A6248-3D31-3701-703C-55ED340D68E1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CD8A6248-3D31-3701-703C-55ED340D68E1}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{CD8A6248-3D31-3701-703C-55ED340D68E1} = {8B45F20C-A827-9B23-6D23-159F16D6FCF2}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {57CF6236-B755-45F9-A196-1BDBB3453B4B}
+	EndGlobalSection
+EndGlobal

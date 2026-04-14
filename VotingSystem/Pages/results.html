@@ -57,101 +57,101 @@
   <h1>Election Results</h1>
   <p class="subtitle">Final results for completed elections</p>
 
-  <div class="election-selector">
-    <div class="election-tab active">Student Council President 2025</div>
-    <div class="election-tab">Sports Captain Vote 2024</div>
-    <div class="election-tab">Departmental Head Election</div>
-  </div>
-
-  <!-- Summary card -->
-  <div class="card mb-4">
-    <div class="flex justify-between items-center flex-wrap gap-3">
-      <div>
-        <h2 style="margin-bottom:4px;">Student Council President 2025</h2>
-        <span class="badge badge-closed">Closed — Mar 31, 2025</span>
-      </div>
-      <div class="stats-grid" style="margin:0;gap:12px;">
-        <div class="stat-card" style="padding:14px 18px;">
-          <div class="stat-label">Total votes</div>
-          <div class="stat-value" style="font-size:1.5rem;color:var(--accent);">428</div>
-        </div>
-        <div class="stat-card" style="padding:14px 18px;">
-          <div class="stat-label">Turnout</div>
-          <div class="stat-value" style="font-size:1.5rem;color:var(--green);">74%</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Results list -->
-  <div class="result-card winner">
-    <div class="rank first">1</div>
-    <div class="result-avatar">👩</div>
-    <div class="result-info">
-      <div class="result-name">Alice Mutoni <span class="winner-crown">🏆</span></div>
-      <div class="result-party">Progressive Students Alliance</div>
-      <div class="progress-wrap">
-        <div class="progress-bar"><div class="progress-fill green" style="width:52%"></div></div>
-      </div>
-    </div>
-    <div>
-      <div class="result-votes" style="color:var(--green);">223</div>
-      <div class="result-pct" style="text-align:right;">52.1%</div>
-    </div>
-  </div>
-
-  <div class="result-card">
-    <div class="rank">2</div>
-    <div class="result-avatar">👨</div>
-    <div class="result-info">
-      <div class="result-name">Bob Nkurunziza</div>
-      <div class="result-party">Students Forward Movement</div>
-      <div class="progress-wrap">
-        <div class="progress-bar"><div class="progress-fill" style="width:31%"></div></div>
-      </div>
-    </div>
-    <div>
-      <div class="result-votes">133</div>
-      <div class="result-pct" style="text-align:right;">31.1%</div>
-    </div>
-  </div>
-
-  <div class="result-card">
-    <div class="rank">3</div>
-    <div class="result-avatar">👩</div>
-    <div class="result-info">
-      <div class="result-name">Claire Uwase</div>
-      <div class="result-party">Independent</div>
-      <div class="progress-wrap">
-        <div class="progress-bar"><div class="progress-fill purple" style="width:11%"></div></div>
-      </div>
-    </div>
-    <div>
-      <div class="result-votes">47</div>
-      <div class="result-pct" style="text-align:right;">11%</div>
-    </div>
-  </div>
-
-  <div class="result-card">
-    <div class="rank">4</div>
-    <div class="result-avatar">👨</div>
-    <div class="result-info">
-      <div class="result-name">David Hakizimana</div>
-      <div class="result-party">United Campus Party</div>
-      <div class="progress-wrap">
-        <div class="progress-bar"><div class="progress-fill amber" style="width:6%"></div></div>
-      </div>
-    </div>
-    <div>
-      <div class="result-votes">25</div>
-      <div class="result-pct" style="text-align:right;">5.8%</div>
-    </div>
-  </div>
+  <div class="election-selector" id="electionTabs"></div>
+  <div id="resultsContent"><p class="text-muted text-sm">Loading results...</p></div>
 
   <div class="mt-3 flex gap-3">
     <a href="voter-dashboard.html" class="btn btn-secondary">← Back to elections</a>
   </div>
 
 </div>
+<script>
+  const API = 'http://localhost:5099';
+  const token = localStorage.getItem('token');
+  if (!token) location.href = 'login.html';
+
+  let allElections = [];
+  let currentId = null;
+
+  async function loadResults() {
+    const res = await fetch(`${API}/api/voter/results`, { headers: { 'Authorization': 'Bearer ' + token } });
+    if (res.status === 401) { localStorage.clear(); location.href = 'login.html'; return; }
+    allElections = await res.json();
+
+    const tabs = document.getElementById('electionTabs');
+    tabs.innerHTML = '';
+
+    if (!allElections.length) {
+      document.getElementById('resultsContent').innerHTML = '<p class="text-muted">No closed elections yet.</p>';
+      return;
+    }
+
+    // Check if URL has electionId param
+    const urlId = parseInt(new URLSearchParams(window.location.search).get('electionId'));
+    const first = allElections.find(e => e.electionId === urlId) || allElections[0];
+
+    allElections.forEach(e => {
+      const tab = document.createElement('div');
+      tab.className = 'election-tab' + (e.electionId === first.electionId ? ' active' : '');
+      tab.textContent = e.electionName;
+      tab.onclick = () => {
+        document.querySelectorAll('.election-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        renderResults(e);
+      };
+      tabs.appendChild(tab);
+    });
+
+    renderResults(first);
+  }
+
+  function renderResults(election) {
+    const total = election.totalVotes || 0;
+    const content = document.getElementById('resultsContent');
+
+    let rows = '';
+    election.results.forEach((r, i) => {
+      const pct = total > 0 ? ((r.totalVotes / total) * 100).toFixed(1) : 0;
+      const isWinner = i === 0;
+      const colors = ['green', '', 'purple', 'amber'];
+      rows += `
+        <div class="result-card ${isWinner ? 'winner' : ''}">
+          <div class="rank ${isWinner ? 'first' : ''}">${i + 1}</div>
+          <div class="result-avatar">${r.candidateName.charAt(0)}</div>
+          <div class="result-info">
+            <div class="result-name">${r.candidateName} ${isWinner ? '<span class="winner-crown">🏆</span>' : ''}</div>
+            <div class="result-party">${r.party || 'Independent'}</div>
+            <div class="progress-wrap">
+              <div class="progress-bar"><div class="progress-fill ${colors[i] || ''}" style="width:${pct}%"></div></div>
+            </div>
+          </div>
+          <div>
+            <div class="result-votes" style="${isWinner ? 'color:var(--green)' : ''}">${r.totalVotes}</div>
+            <div class="result-pct" style="text-align:right;">${pct}%</div>
+          </div>
+        </div>`;
+    });
+
+    content.innerHTML = `
+      <div class="card mb-4">
+        <div class="flex justify-between items-center flex-wrap gap-3">
+          <div>
+            <h2 style="margin-bottom:4px;">${election.electionName}</h2>
+            <span class="badge badge-closed">Closed — ${new Date(election.endDate).toLocaleDateString()}</span>
+          </div>
+          <div class="stats-grid" style="margin:0;gap:12px;">
+            <div class="stat-card" style="padding:14px 18px;">
+              <div class="stat-label">Total votes</div>
+              <div class="stat-value" style="font-size:1.5rem;color:var(--accent);">${total}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      ${rows}`;
+  }
+
+  loadResults();
+</script>
+
 </body>
 </html>

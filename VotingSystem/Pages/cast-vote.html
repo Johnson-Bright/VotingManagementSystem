@@ -131,19 +131,52 @@
     <div class="alert alert-danger">
       ⚠️ This vote is final and cannot be changed once submitted.
     </div>
-    <div class="flex gap-3">
+  <div class="flex gap-3">
       <button class="btn btn-secondary" onclick="clearSelection()">← Change selection</button>
-      <a href="vote-success.html" class="btn btn-primary" style="flex:1;justify-content:center;">Submit vote ✔</a>
+      <button class="btn btn-primary" style="flex:1;justify-content:center;" onclick="submitVote()">Submit vote ✔</button>
     </div>
   </div>
 
 </div>
 
 <script>
+  const token = localStorage.getItem('token');
+  if (!token) location.href = 'login.html';
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const electionId = urlParams.get('electionId');
+  if (!electionId) location.href = 'voter-dashboard.html';
+
+  let selectedCandidateId = null;
+
+  fetch(`http://localhost:5099/api/elections/${electionId}`, {
+    headers: { 'Authorization': 'Bearer ' + token }
+  })
+  .then(res => res.json())
+  .then(election => {
+    document.querySelector('h1').textContent = election.electionName;
+    document.querySelector('.breadcrumb span:last-child').textContent = election.electionName;
+    const grid = document.getElementById('candidateGrid');
+    grid.innerHTML = '';
+    election.candidates.forEach(candidate => {
+      const card = document.createElement('div');
+      card.className = 'candidate-card';
+      card.onclick = () => selectCandidate(card, candidate.candidateId, candidate.user.fullName, candidate.party || 'Independent');
+      card.innerHTML = `
+        <div class="candidate-avatar">${candidate.user.fullName.charAt(0)}</div>
+        <div class="candidate-name">${candidate.user.fullName}</div>
+        <div class="candidate-party">${candidate.party || 'Independent'}</div>
+        <div class="candidate-bio">Candidate for ${election.electionName}</div>
+      `;
+      grid.appendChild(card);
+    });
+  });
+
   let selected = null;
-  function selectCandidate(el, name, party) {
+  function selectCandidate(el, candidateId, name, party) {
     document.querySelectorAll('.candidate-card').forEach(c => c.classList.remove('selected'));
     el.classList.add('selected');
+    selectedCandidateId = candidateId;
     selected = { name, party };
     document.getElementById('selectedName').textContent = name;
     document.getElementById('selectedParty').textContent = party;
@@ -154,6 +187,26 @@
     document.querySelectorAll('.candidate-card').forEach(c => c.classList.remove('selected'));
     document.getElementById('confirmBox').classList.remove('show');
     selected = null;
+    selectedCandidateId = null;
+  }
+  function submitVote() {
+    if (!selectedCandidateId) return;
+    fetch('http://localhost:5099/api/voter/vote', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      },
+      body: JSON.stringify({ candidateId: selectedCandidateId })
+    })
+    .then(res => {
+      if (res.ok) {
+        location.href = 'vote-success.html';
+      } else {
+        alert('Vote failed: ' + res.statusText);
+      }
+    })
+    .catch(err => alert('Error: ' + err.message));
   }
 </script>
 </body>

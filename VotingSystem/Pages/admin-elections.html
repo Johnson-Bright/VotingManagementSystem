@@ -60,71 +60,7 @@
       <thead>
         <tr><th>Title</th><th>Status</th><th>Candidates</th><th>Votes</th><th>Start</th><th>End</th><th>Actions</th></tr>
       </thead>
-      <tbody>
-        <tr>
-          <td><strong>Student Council President 2025</strong></td>
-          <td><span class="badge badge-active">Active</span></td>
-          <td>4</td><td>223</td>
-          <td class="text-muted">Mar 25</td><td style="color:var(--amber);">Mar 31</td>
-          <td>
-            <div style="display:flex;gap:6px;">
-              <button class="btn btn-secondary btn-sm" onclick="document.getElementById('editModal').classList.add('open')">Edit</button>
-              <button class="btn btn-secondary btn-sm" onclick="document.getElementById('candidatesModal').classList.add('open')">Candidates</button>
-              <button class="btn btn-danger btn-sm">Close</button>
-            </div>
-          </td>
-        </tr>
-        <tr>
-          <td><strong>Best Club of the Year Award</strong></td>
-          <td><span class="badge badge-active">Active</span></td>
-          <td>6</td><td>89</td>
-          <td class="text-muted">Mar 28</td><td>Apr 5</td>
-          <td>
-            <div style="display:flex;gap:6px;">
-              <button class="btn btn-secondary btn-sm" onclick="document.getElementById('editModal').classList.add('open')">Edit</button>
-              <button class="btn btn-secondary btn-sm" onclick="document.getElementById('candidatesModal').classList.add('open')">Candidates</button>
-              <button class="btn btn-danger btn-sm">Close</button>
-            </div>
-          </td>
-        </tr>
-        <tr>
-          <td><strong>Faculty Representative Election</strong></td>
-          <td><span class="badge badge-active">Active</span></td>
-          <td>3</td><td>45</td>
-          <td class="text-muted">Mar 29</td><td>Apr 10</td>
-          <td>
-            <div style="display:flex;gap:6px;">
-              <button class="btn btn-secondary btn-sm" onclick="document.getElementById('editModal').classList.add('open')">Edit</button>
-              <button class="btn btn-secondary btn-sm" onclick="document.getElementById('candidatesModal').classList.add('open')">Candidates</button>
-              <button class="btn btn-danger btn-sm">Close</button>
-            </div>
-          </td>
-        </tr>
-        <tr>
-          <td><strong>Sports Captain Vote 2024</strong></td>
-          <td><span class="badge badge-closed">Closed</span></td>
-          <td>5</td><td>312</td>
-          <td class="text-muted">Jan 10</td><td class="text-muted">Jan 20</td>
-          <td>
-            <div style="display:flex;gap:6px;">
-              <a href="results.html" class="btn btn-success btn-sm">Results</a>
-              <button class="btn btn-danger btn-sm">Delete</button>
-            </div>
-          </td>
-        </tr>
-        <tr>
-          <td><strong>Departmental Head Election</strong></td>
-          <td><span class="badge badge-closed">Closed</span></td>
-          <td>4</td><td>528</td>
-          <td class="text-muted">Feb 1</td><td class="text-muted">Feb 7</td>
-          <td>
-            <div style="display:flex;gap:6px;">
-              <a href="results.html" class="btn btn-success btn-sm">Results</a>
-              <button class="btn btn-danger btn-sm">Delete</button>
-            </div>
-          </td>
-        </tr>
-      </tbody>
+      <tbody id="electionsBody"><tr><td colspan="7" class="text-muted">Loading...</td></tr></tbody>
     </table>
   </div>
 </main>
@@ -134,80 +70,76 @@
   <div class="modal">
     <h2>Create New Election</h2>
     <p class="text-muted text-sm mb-3">Fill in the details for the new election</p>
-    <div class="form-group"><label>Election Title</label><input type="text" placeholder="e.g. Student Council President 2025"/></div>
-    <div class="form-group"><label>Description</label><textarea rows="3" placeholder="Brief description of this election..."></textarea></div>
+    <div class="form-group"><label>Election Title</label><input type="text" id="newTitle" placeholder="e.g. Student Council President 2026"/></div>
     <div class="grid-2">
-      <div class="form-group"><label>Start Date</label><input type="date"/></div>
-      <div class="form-group"><label>End Date</label><input type="date"/></div>
-    </div>
-    <div class="form-group">
-      <label>Status</label>
-      <select><option>Draft</option><option>Active</option></select>
+      <div class="form-group"><label>Start Date</label><input type="date" id="newStart"/></div>
+      <div class="form-group"><label>End Date</label><input type="date" id="newEnd"/></div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="document.getElementById('newModal').classList.remove('open')">Cancel</button>
-      <button class="btn btn-primary">Create Election</button>
-    </div>
-  </div>
-</div>
-
-<!-- Edit Election Modal -->
-<div class="modal-overlay" id="editModal">
-  <div class="modal">
-    <h2>Edit Election</h2>
-    <p class="text-muted text-sm mb-3">Update election details</p>
-    <div class="form-group"><label>Election Title</label><input type="text" value="Student Council President 2025"/></div>
-    <div class="form-group"><label>Description</label><textarea rows="3">Vote for the next student council president...</textarea></div>
-    <div class="grid-2">
-      <div class="form-group"><label>Start Date</label><input type="date" value="2025-03-25"/></div>
-      <div class="form-group"><label>End Date</label><input type="date" value="2025-03-31"/></div>
-    </div>
-    <div class="form-group">
-      <label>Status</label>
-      <select><option>Draft</option><option selected>Active</option><option>Closed</option></select>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="document.getElementById('editModal').classList.remove('open')">Cancel</button>
-      <button class="btn btn-primary">Save Changes</button>
-    </div>
-  </div>
-</div>
-
-<!-- Candidates Modal -->
-<div class="modal-overlay" id="candidatesModal">
-  <div class="modal">
-    <h2>Manage Candidates</h2>
-    <p class="text-muted text-sm mb-3">Student Council President 2025</p>
-    <div class="table-wrap mb-3">
-      <table>
-        <thead><tr><th>Name</th><th>Party</th><th></th></tr></thead>
-        <tbody>
-          <tr><td>Alice Mutoni</td><td class="text-muted">Progressive Students Alliance</td><td><button class="btn btn-danger btn-sm">Remove</button></td></tr>
-          <tr><td>Bob Nkurunziza</td><td class="text-muted">Students Forward Movement</td><td><button class="btn btn-danger btn-sm">Remove</button></td></tr>
-          <tr><td>Claire Uwase</td><td class="text-muted">Independent</td><td><button class="btn btn-danger btn-sm">Remove</button></td></tr>
-          <tr><td>David Hakizimana</td><td class="text-muted">United Campus Party</td><td><button class="btn btn-danger btn-sm">Remove</button></td></tr>
-        </tbody>
-      </table>
-    </div>
-    <hr class="divider"/>
-    <p style="font-size:0.85rem;font-weight:600;margin-bottom:12px;">Add new candidate</p>
-    <div class="grid-2">
-      <div class="form-group"><label>Full Name</label><input type="text" placeholder="Full name"/></div>
-      <div class="form-group"><label>Party / Affiliation</label><input type="text" placeholder="Party name"/></div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="document.getElementById('candidatesModal').classList.remove('open')">Close</button>
-      <button class="btn btn-primary">Add Candidate</button>
+      <button class="btn btn-primary" onclick="createElection()">Create Election</button>
     </div>
   </div>
 </div>
 
 <script>
-  document.querySelectorAll('.modal-overlay').forEach(overlay => {
-    overlay.addEventListener('click', function(e) {
-      if (e.target === this) this.classList.remove('open');
+  const API = 'http://localhost:5099';
+  const token = localStorage.getItem('token');
+  if (!token) location.href = 'login.html';
+  function authH() { return { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }; }
+
+  async function loadElections() {
+    const res = await fetch(`${API}/api/admin/elections`, { headers: authH() });
+    if (res.status === 401) { localStorage.clear(); location.href = 'login.html'; return; }
+    const elections = await res.json();
+    const tbody = document.getElementById('electionsBody');
+    tbody.innerHTML = '';
+    if (!elections.length) { tbody.innerHTML = '<tr><td colspan="7" class="text-muted">No elections found.</td></tr>'; return; }
+    elections.forEach(e => {
+      const badgeClass = e.status === 'Active' ? 'badge-active' : e.status === 'Closed' ? 'badge-closed' : 'badge-draft';
+      const actions = e.status === 'Active'
+        ? `<button class="btn btn-danger btn-sm" onclick="closeElection(${e.electionId})">Close</button>`
+        : `<button class="btn btn-danger btn-sm" onclick="deleteElection(${e.electionId})">Delete</button>
+           <a href="results.html?electionId=${e.electionId}" class="btn btn-success btn-sm">Results</a>`;
+      tbody.innerHTML += `
+        <tr>
+          <td><strong>${e.electionName}</strong></td>
+          <td><span class="badge ${badgeClass}">${e.status}</span></td>
+          <td>${e.candidateCount}</td><td>${e.voteCount}</td>
+          <td class="text-muted">${new Date(e.startDate).toLocaleDateString()}</td>
+          <td class="${e.status === 'Active' ? '' : 'text-muted'}">${new Date(e.endDate).toLocaleDateString()}</td>
+          <td><div style="display:flex;gap:6px;">${actions}</div></td>
+        </tr>`;
     });
-  });
+  }
+
+  async function createElection() {
+    const title = document.getElementById('newTitle').value.trim();
+    const start = document.getElementById('newStart').value;
+    const end   = document.getElementById('newEnd').value;
+    if (!title || !start || !end) { alert('Please fill all fields'); return; }
+    await fetch(`${API}/api/admin/create-election`, {
+      method: 'POST', headers: authH(),
+      body: JSON.stringify({ electionName: title, startDate: start, endDate: end })
+    });
+    document.getElementById('newModal').classList.remove('open');
+    loadElections();
+  }
+
+  async function closeElection(id) {
+    if (!confirm('Close this election?')) return;
+    await fetch(`${API}/api/admin/election/${id}/close`, { method: 'PUT', headers: authH() });
+    loadElections();
+  }
+
+  async function deleteElection(id) {
+    if (!confirm('Delete this election?')) return;
+    await fetch(`${API}/api/admin/election/${id}`, { method: 'DELETE', headers: authH() });
+    loadElections();
+  }
+
+  document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); }));
+  loadElections();
 </script>
 </body>
 </html>

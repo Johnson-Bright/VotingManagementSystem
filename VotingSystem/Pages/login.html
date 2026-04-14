@@ -53,11 +53,11 @@
 
     <div class="form-group">
       <label>Email address</label>
-      <input type="email" placeholder="you@example.com" />
+      <input type="email" id="email" placeholder="you@example.com" />
     </div>
     <div class="form-group">
       <label>Password</label>
-      <input type="password" placeholder="••••••••" />
+      <input type="password" id="password" placeholder="••••••••" />
     </div>
 
     <div class="flex justify-between items-center mb-3" style="margin-top:-8px;">
@@ -90,9 +90,34 @@
       document.querySelectorAll('.role-btn').forEach(b => b.classList.toggle('active', b.dataset.role === role));
     }
     function doLogin() {
-      if (currentRole === 'admin') location.href = 'admin-dashboard.html';
-      else if (currentRole === 'candidate') location.href = 'candidate-dashboard.html';
-      else location.href = 'voter-dashboard.html';
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      if (!email || !password) {
+        alert('Please enter email and password');
+        return;
+      }
+      fetch('http://localhost:5099/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.token) {
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('role', data.role);
+          localStorage.setItem('fullName', data.fullName);
+          localStorage.setItem('userId', data.userId);
+          if (data.role === 'Admin') location.href = 'admin-dashboard.html';
+          else if (data.role === 'Candidate') location.href = 'candidate-dashboard.html';
+          else location.href = 'voter-dashboard.html';
+        } else {
+          alert('Login failed: ' + (data.message || 'Invalid credentials'));
+        }
+      })
+      .catch(err => {
+        alert('Error: ' + err.message);
+      });
     }
   </script>
 </div>

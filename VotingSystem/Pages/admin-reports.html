@@ -63,22 +63,22 @@
   <div class="stats-grid mb-4">
     <div class="stat-card">
       <div class="stat-label">Total Votes Cast</div>
-      <div class="stat-value" style="color:var(--accent);">1,197</div>
+      <div class="stat-value" style="color:var(--accent);" id="statVotes">—</div>
       <div class="stat-sub">All elections combined</div>
     </div>
     <div class="stat-card">
-      <div class="stat-label">Avg. Voter Turnout</div>
-      <div class="stat-value" style="color:var(--green);">68%</div>
-      <div class="stat-sub">Across all elections</div>
-    </div>
-    <div class="stat-card">
       <div class="stat-label">Elections Completed</div>
-      <div class="stat-value" style="color:var(--amber);">2</div>
+      <div class="stat-value" style="color:var(--amber);" id="statClosed">—</div>
       <div class="stat-sub">Results available</div>
     </div>
     <div class="stat-card">
+      <div class="stat-label">Active Elections</div>
+      <div class="stat-value" style="color:var(--green);" id="statActive">—</div>
+      <div class="stat-sub">Currently running</div>
+    </div>
+    <div class="stat-card">
       <div class="stat-label">Registered Voters</div>
-      <div class="stat-value" style="color:var(--text);">842</div>
+      <div class="stat-value" style="color:var(--text);" id="statVoters">—</div>
       <div class="stat-sub">Total in system</div>
     </div>
   </div>
@@ -146,279 +146,136 @@
   <h2>Publish Election Results</h2>
   <div class="card">
     <p class="text-muted text-sm mb-3">Finalize and release results so voters and candidates can view them.</p>
-
-    <div class="publish-row">
-      <div>
-        <div style="font-weight:600;">Sports Captain Vote 2024</div>
-        <div class="text-muted text-sm">Closed Jan 20 · 312 votes · Winner: Alice Mutoni</div>
-      </div>
-      <div class="flex items-center gap-3">
-        <span class="badge badge-active">✔ Published</span>
-        <a href="results.html" class="btn btn-secondary btn-sm">View</a>
-      </div>
-    </div>
-
-    <div class="publish-row">
-      <div>
-        <div style="font-weight:600;">Departmental Head Election</div>
-        <div class="text-muted text-sm">Closed Feb 7 · 528 votes · Winner: Bob Nkurunziza</div>
-      </div>
-      <div class="flex items-center gap-3">
-        <span class="badge badge-draft" id="deptBadge">Draft</span>
-        <button class="btn btn-primary btn-sm" id="deptPublishBtn" onclick="publishResult('dept')">🚀 Publish Results</button>
-      </div>
-    </div>
-
-    <div class="publish-row">
-      <div>
-        <div style="font-weight:600;">Student Council President 2025</div>
-        <div class="text-muted text-sm">Active — closes Mar 31 · 223 votes so far</div>
-      </div>
-      <div class="flex items-center gap-3">
-        <span class="badge badge-active">Active</span>
-        <button class="btn btn-secondary btn-sm" disabled>Not closed yet</button>
-      </div>
-    </div>
-
+    <div id="publishList"><p class="text-muted text-sm">Loading...</p></div>
   </div>
 
 </main>
 
 <script>
+  const API = 'http://localhost:5099';
+  const token = localStorage.getItem('token');
+  if (!token) location.href = 'login.html';
+  function authH() { return { 'Authorization': 'Bearer ' + token }; }
+
+  async function loadStats() {
+    const res = await fetch(`${API}/api/admin/stats`, { headers: authH() });
+    if (res.status === 401) { localStorage.clear(); location.href = 'login.html'; return; }
+    const s = await res.json();
+    document.getElementById('statVotes').textContent  = s.totalVotes;
+    document.getElementById('statClosed').textContent = s.closedElections;
+    document.getElementById('statActive').textContent = s.activeElections;
+    document.getElementById('statVoters').textContent = s.totalVoters;
+  }
+
+  async function loadPublishList() {
+    const res = await fetch(`${API}/api/admin/elections`, { headers: authH() });
+    const elections = await res.json();
+    const closed = elections.filter(e => e.status === 'Closed');
+    const list = document.getElementById('publishList');
+    if (!closed.length) { list.innerHTML = '<p class="text-muted text-sm">No closed elections yet.</p>'; return; }
+    list.innerHTML = closed.map(e => `
+      <div class="publish-row">
+        <div>
+          <div style="font-weight:600;">${e.electionName}</div>
+          <div class="text-muted text-sm">Closed ${new Date(e.endDate).toLocaleDateString()} · ${e.voteCount} votes</div>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="badge badge-active">✔ Closed</span>
+          <a href="results.html?electionId=${e.electionId}" class="btn btn-secondary btn-sm">View Results</a>
+        </div>
+      </div>`).join('');
+  }
+
   const { jsPDF } = window.jspdf;
 
-  /* ── Shared PDF helpers ── */
   function createDoc(title, subtitle) {
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
     const now = new Date().toLocaleString();
     const pageW = doc.internal.pageSize.getWidth();
-
-    // Header bar
-    doc.setFillColor(30, 35, 48);
-    doc.rect(0, 0, pageW, 28, 'F');
-
-    // Logo text
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(16);
-    doc.setTextColor(79, 142, 247);
-    doc.text('VoteMS', 14, 12);
-
-    doc.setFontSize(8);
-    doc.setTextColor(123, 131, 160);
-    doc.text('Voting Management System', 14, 18);
-
-    // Title
-    doc.setFontSize(11);
-    doc.setTextColor(232, 236, 244);
-    doc.text(title, 14, 24);
-
-    // Generated date (right aligned)
-    doc.setFontSize(7);
-    doc.setTextColor(123, 131, 160);
-    doc.text('Generated: ' + now, pageW - 14, 24, { align: 'right' });
-
-    // Subtitle
-    doc.setFontSize(9);
-    doc.setTextColor(123, 131, 160);
-    doc.text(subtitle, 14, 36);
-
-    // Divider
-    doc.setDrawColor(42, 47, 62);
-    doc.line(14, 39, pageW - 14, 39);
-
+    doc.setFillColor(30, 35, 48); doc.rect(0, 0, pageW, 28, 'F');
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(16); doc.setTextColor(79, 142, 247); doc.text('VoteMS', 14, 12);
+    doc.setFontSize(8); doc.setTextColor(123, 131, 160); doc.text('Voting Management System', 14, 18);
+    doc.setFontSize(11); doc.setTextColor(232, 236, 244); doc.text(title, 14, 24);
+    doc.setFontSize(7); doc.setTextColor(123, 131, 160); doc.text('Generated: ' + now, pageW - 14, 24, { align: 'right' });
+    doc.setFontSize(9); doc.setTextColor(123, 131, 160); doc.text(subtitle, 14, 36);
+    doc.setDrawColor(42, 47, 62); doc.line(14, 39, pageW - 14, 39);
     return { doc, y: 44 };
   }
 
   function addFooter(doc) {
-    const pageW = doc.internal.pageSize.getWidth();
-    const pageH = doc.internal.pageSize.getHeight();
-    doc.setFillColor(19, 22, 29);
-    doc.rect(0, pageH - 12, pageW, 12, 'F');
-    doc.setFontSize(7);
-    doc.setTextColor(123, 131, 160);
+    const pageW = doc.internal.pageSize.getWidth(), pageH = doc.internal.pageSize.getHeight();
+    doc.setFillColor(19, 22, 29); doc.rect(0, pageH - 12, pageW, 12, 'F');
+    doc.setFontSize(7); doc.setTextColor(123, 131, 160);
     doc.text('VoteMS — Confidential Report', 14, pageH - 4);
     doc.text('Page 1', pageW - 14, pageH - 4, { align: 'right' });
   }
 
-  function addStatBox(doc, x, y, w, label, value, color) {
-    doc.setFillColor(30, 35, 48);
-    doc.roundedRect(x, y, w, 18, 2, 2, 'F');
-    doc.setFontSize(7);
-    doc.setTextColor(123, 131, 160);
-    doc.text(label.toUpperCase(), x + 4, y + 6);
-    doc.setFontSize(13);
-    doc.setFont('helvetica', 'bold');
-    if (color) doc.setTextColor(...color);
-    else doc.setTextColor(232, 236, 244);
-    doc.text(value, x + 4, y + 14);
-    doc.setFont('helvetica', 'normal');
-  }
-
-  /* ── 1. Election Summary ── */
-  function exportElectionSummary() {
-    const sel = document.getElementById('electionSelect').value;
-    const { doc, y: startY } = createDoc('Election Summary Report', 'Overview of all elections, votes, and results');
-    const pageW = doc.internal.pageSize.getWidth();
-
-    // Stat boxes
-    addStatBox(doc, 14, startY, 40, 'Total Elections', '5', [79, 142, 247]);
-    addStatBox(doc, 58, startY, 40, 'Total Votes', '1,197', [45, 212, 160]);
-    addStatBox(doc, 102, startY, 40, 'Avg Turnout', '68%', [247, 185, 79]);
-    addStatBox(doc, 146, startY, 40, 'Registered Voters', '842', [232, 236, 244]);
-
-    const tableY = startY + 24;
-
+  async function exportElectionSummary() {
+    const res = await fetch(`${API}/api/admin/elections`, { headers: authH() });
+    const elections = await res.json();
+    const { doc, y } = createDoc('Election Summary Report', 'Overview of all elections');
     doc.autoTable({
-      startY: tableY,
-      head: [['Election', 'Status', 'Candidates', 'Votes Cast', 'Turnout', 'Winner']],
-      body: [
-        ['Student Council President 2025', 'Active', '4', '223', '26%', 'Alice Mutoni'],
-        ['Best Club of the Year Award', 'Active', '6', '89', '11%', 'Tech Innovation Club'],
-        ['Faculty Representative Election', 'Active', '3', '45', '5%', 'In Progress'],
-        ['Sports Captain Vote 2024', 'Closed', '5', '312', '74%', 'Alice Mutoni'],
-        ['Departmental Head Election', 'Closed', '4', '528', '63%', 'Bob Nkurunziza'],
-      ],
-      styles: { fontSize: 8, cellPadding: 4, textColor: [232, 236, 244], fillColor: [30, 35, 48], lineColor: [42, 47, 62], lineWidth: 0.3 },
-      headStyles: { fillColor: [26, 30, 40], textColor: [123, 131, 160], fontStyle: 'bold', fontSize: 7 },
-      alternateRowStyles: { fillColor: [19, 22, 29] },
-      columnStyles: { 1: { cellWidth: 20 }, 2: { cellWidth: 22, halign: 'center' }, 3: { cellWidth: 22, halign: 'center' }, 4: { cellWidth: 18, halign: 'center' } },
-      margin: { left: 14, right: 14 },
+      startY: y,
+      head: [['Election', 'Status', 'Candidates', 'Votes', 'Start', 'End']],
+      body: elections.map(e => [e.electionName, e.status, e.candidateCount, e.voteCount,
+        new Date(e.startDate).toLocaleDateString(), new Date(e.endDate).toLocaleDateString()]),
+      styles: { fontSize: 8, cellPadding: 4, textColor: [232,236,244], fillColor: [30,35,48], lineColor: [42,47,62], lineWidth: 0.3 },
+      headStyles: { fillColor: [26,30,40], textColor: [123,131,160], fontStyle: 'bold', fontSize: 7 },
+      alternateRowStyles: { fillColor: [19,22,29] },
+      margin: { left: 14, right: 14 }
     });
-
     addFooter(doc);
-    doc.save('VoteMS_Election_Summary_Report.pdf');
+    doc.save('VoteMS_Election_Summary.pdf');
   }
 
-  /* ── 2. Voter Turnout ── */
-  function exportVoterTurnout() {
-    const { doc, y: startY } = createDoc('Voter Turnout Report', 'Voter participation breakdown by election');
-    const pageW = doc.internal.pageSize.getWidth();
-
-    addStatBox(doc, 14, startY, 55, 'Total Registered', '842', [79, 142, 247]);
-    addStatBox(doc, 73, startY, 55, 'Active Voters', '634', [45, 212, 160]);
-    addStatBox(doc, 132, startY, 55, 'Avg Turnout', '68%', [247, 185, 79]);
-
+  async function exportVoterTurnout() {
+    const res = await fetch(`${API}/api/admin/voters`, { headers: authH() });
+    const voters = await res.json();
+    const { doc, y } = createDoc('Voter Report', 'All registered voters');
     doc.autoTable({
-      startY: startY + 24,
-      head: [['Election', 'Registered', 'Voted', 'Not Voted', 'Turnout %', 'Period']],
-      body: [
-        ['Student Council President 2025', '842', '223', '619', '26.5%', 'Mar 25 – Mar 31'],
-        ['Best Club of the Year Award', '842', '89', '753', '10.6%', 'Mar 28 – Apr 5'],
-        ['Faculty Representative Election', '842', '45', '797', '5.3%', 'Mar 29 – Apr 10'],
-        ['Sports Captain Vote 2024', '420', '312', '108', '74.3%', 'Jan 10 – Jan 20'],
-        ['Departmental Head Election', '840', '528', '312', '62.9%', 'Feb 1 – Feb 7'],
-      ],
-      styles: { fontSize: 8, cellPadding: 4, textColor: [232, 236, 244], fillColor: [30, 35, 48], lineColor: [42, 47, 62], lineWidth: 0.3 },
-      headStyles: { fillColor: [26, 30, 40], textColor: [123, 131, 160], fontStyle: 'bold', fontSize: 7 },
-      alternateRowStyles: { fillColor: [19, 22, 29] },
-      columnStyles: { 2: { halign: 'center' }, 3: { halign: 'center' }, 4: { halign: 'center' }, 5: { halign: 'center', textColor: [45, 212, 160] } },
-      margin: { left: 14, right: 14 },
+      startY: y,
+      head: [['Name', 'Email', 'National ID', 'Votes Cast', 'Status']],
+      body: voters.map(v => [v.fullName, v.email, v.nationalId || '—', v.votesCount, v.status]),
+      styles: { fontSize: 8, cellPadding: 4, textColor: [232,236,244], fillColor: [30,35,48], lineColor: [42,47,62], lineWidth: 0.3 },
+      headStyles: { fillColor: [26,30,40], textColor: [123,131,160], fontStyle: 'bold', fontSize: 7 },
+      alternateRowStyles: { fillColor: [19,22,29] },
+      margin: { left: 14, right: 14 }
     });
-
     addFooter(doc);
-    doc.save('VoteMS_Voter_Turnout_Report.pdf');
+    doc.save('VoteMS_Voters_Report.pdf');
   }
 
-  /* ── 3. Candidate Performance ── */
-  function exportCandidateReport() {
-    const { doc, y: startY } = createDoc('Candidate Performance Report', 'Votes received per candidate across all elections');
-
+  async function exportCandidateReport() {
+    const res = await fetch(`${API}/api/admin/candidates`, { headers: authH() });
+    const candidates = await res.json();
+    const { doc, y } = createDoc('Candidate Performance Report', 'Votes per candidate');
     doc.autoTable({
-      startY: startY + 4,
-      head: [['Candidate', 'Party', 'Election', 'Position', 'Votes', 'Share', 'Result']],
-      body: [
-        ['Alice Mutoni', 'Progressive Students Alliance', 'Student Council 2025', 'President', '223', '52.1%', '🏆 Winner'],
-        ['Bob Nkurunziza', 'Students Forward Movement', 'Student Council 2025', 'President', '133', '31.1%', 'Runner-up'],
-        ['Claire Uwase', 'Independent', 'Student Council 2025', 'President', '47', '11.0%', '3rd'],
-        ['David Hakizimana', 'United Campus Party', 'Student Council 2025', 'President', '25', '5.8%', '4th'],
-        ['Alice Mutoni', 'Progressive Students Alliance', 'Sports Captain 2024', 'Captain', '312', '74.3%', '🏆 Winner'],
-        ['Bob Nkurunziza', 'Students Forward', 'Departmental Head', 'Dept. Head', '528', '62.9%', '🏆 Winner'],
-        ['Tech Innovation Club', 'Technology', 'Best Club Award', 'Club', '45', '50.6%', 'Leading'],
-        ['Drama & Arts Society', 'Arts & Culture', 'Best Club Award', 'Club', '22', '24.7%', '2nd'],
-      ],
-      styles: { fontSize: 7.5, cellPadding: 3.5, textColor: [232, 236, 244], fillColor: [30, 35, 48], lineColor: [42, 47, 62], lineWidth: 0.3 },
-      headStyles: { fillColor: [26, 30, 40], textColor: [123, 131, 160], fontStyle: 'bold', fontSize: 7 },
-      alternateRowStyles: { fillColor: [19, 22, 29] },
-      columnStyles: { 4: { halign: 'center' }, 5: { halign: 'center', textColor: [45, 212, 160] } },
-      margin: { left: 14, right: 14 },
+      startY: y,
+      head: [['Candidate', 'Party', 'Election', 'Votes', 'Status']],
+      body: candidates.map(c => [c.user.fullName, c.party || 'Independent', c.electionName, c.voteCount, c.electionStatus]),
+      styles: { fontSize: 8, cellPadding: 4, textColor: [232,236,244], fillColor: [30,35,48], lineColor: [42,47,62], lineWidth: 0.3 },
+      headStyles: { fillColor: [26,30,40], textColor: [123,131,160], fontStyle: 'bold', fontSize: 7 },
+      alternateRowStyles: { fillColor: [19,22,29] },
+      margin: { left: 14, right: 14 }
     });
-
     addFooter(doc);
-    doc.save('VoteMS_Candidate_Performance_Report.pdf');
+    doc.save('VoteMS_Candidates_Report.pdf');
   }
 
-  /* ── 4. Audit Log ── */
   function exportAuditLog() {
-    const dateVal = document.getElementById('auditDate').value;
-    const dateLabel = dateVal ? new Date(dateVal).toLocaleDateString() : 'All Dates';
-    const { doc, y: startY } = createDoc('Audit Log Report', 'System activity log — ' + dateLabel);
-
-    doc.autoTable({
-      startY: startY + 4,
-      head: [['Log ID', 'User', 'Role', 'Action', 'Details', 'Date & Time']],
-      body: [
-        ['LOG-001', 'admin@votems.com', 'Admin', 'LOGIN', 'Admin signed in', 'Apr 13, 2026 08:00'],
-        ['LOG-002', 'alice@example.com', 'Voter', 'LOGIN', 'Voter signed in', 'Apr 13, 2026 08:15'],
-        ['LOG-003', 'alice@example.com', 'Voter', 'VOTE_CAST', 'Voted in Student Council 2025', 'Apr 13, 2026 08:17'],
-        ['LOG-004', 'bob@example.com', 'Voter', 'LOGIN', 'Voter signed in', 'Apr 13, 2026 09:00'],
-        ['LOG-005', 'bob@example.com', 'Voter', 'VOTE_CAST', 'Voted in Best Club Award', 'Apr 13, 2026 09:05'],
-        ['LOG-006', 'admin@votems.com', 'Admin', 'ELECTION_CREATED', 'Created Faculty Rep Election', 'Apr 13, 2026 10:00'],
-        ['LOG-007', 'frank@example.com', 'Candidate', 'REGISTER', 'Applied as candidate', 'Apr 13, 2026 10:30'],
-        ['LOG-008', 'admin@votems.com', 'Admin', 'CANDIDATE_APPROVED', 'Approved Frank Mugisha', 'Apr 13, 2026 11:00'],
-        ['LOG-009', 'claire@example.com', 'Voter', 'VOTE_CAST', 'Voted in Faculty Rep Election', 'Apr 13, 2026 11:45'],
-        ['LOG-010', 'admin@votems.com', 'Admin', 'RESULTS_PUBLISHED', 'Published Sports Captain 2024', 'Apr 13, 2026 14:00'],
-      ],
-      styles: { fontSize: 7, cellPadding: 3, textColor: [232, 236, 244], fillColor: [30, 35, 48], lineColor: [42, 47, 62], lineWidth: 0.3 },
-      headStyles: { fillColor: [26, 30, 40], textColor: [123, 131, 160], fontStyle: 'bold', fontSize: 6.5 },
-      alternateRowStyles: { fillColor: [19, 22, 29] },
-      columnStyles: { 0: { cellWidth: 18 }, 3: { cellWidth: 28 } },
-      margin: { left: 14, right: 14 },
-    });
-
+    const { doc, y } = createDoc('Audit Log Report', 'System activity log');
+    doc.setFontSize(9); doc.setTextColor(123,131,160);
+    doc.text('Audit logging is not yet implemented in the backend.', 14, y + 10);
     addFooter(doc);
-    doc.save('VoteMS_Audit_Log_Report.pdf');
+    doc.save('VoteMS_Audit_Log.pdf');
   }
 
-  /* ── CSV Export ── */
   function exportCSV(type) {
-    let csv = '';
-    let filename = '';
-
-    if (type === 'turnout') {
-      csv = 'Election,Registered,Voted,Not Voted,Turnout %,Period\n';
-      csv += '"Student Council President 2025",842,223,619,26.5%,"Mar 25 – Mar 31"\n';
-      csv += '"Best Club of the Year Award",842,89,753,10.6%,"Mar 28 – Apr 5"\n';
-      csv += '"Faculty Representative Election",842,45,797,5.3%,"Mar 29 – Apr 10"\n';
-      csv += '"Sports Captain Vote 2024",420,312,108,74.3%,"Jan 10 – Jan 20"\n';
-      csv += '"Departmental Head Election",840,528,312,62.9%,"Feb 1 – Feb 7"\n';
-      filename = 'VoteMS_Voter_Turnout.csv';
-    } else if (type === 'candidates') {
-      csv = 'Candidate,Party,Election,Position,Votes,Share,Result\n';
-      csv += '"Alice Mutoni","Progressive Students Alliance","Student Council 2025","President",223,52.1%,Winner\n';
-      csv += '"Bob Nkurunziza","Students Forward Movement","Student Council 2025","President",133,31.1%,Runner-up\n';
-      csv += '"Claire Uwase","Independent","Student Council 2025","President",47,11.0%,3rd\n';
-      csv += '"David Hakizimana","United Campus Party","Student Council 2025","President",25,5.8%,4th\n';
-      csv += '"Alice Mutoni","Progressive Students Alliance","Sports Captain 2024","Captain",312,74.3%,Winner\n';
-      filename = 'VoteMS_Candidate_Performance.csv';
-    }
-
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = filename; a.click();
-    URL.revokeObjectURL(url);
+    alert('CSV export coming soon.');
   }
 
-  /* ── Publish Results ── */
-  function publishResult(id) {
-    const badge = document.getElementById(id + 'Badge');
-    const btn = document.getElementById(id + 'PublishBtn');
-    badge.className = 'badge badge-active';
-    badge.textContent = '✔ Published';
-    btn.textContent = 'Published';
-    btn.disabled = true;
-    btn.className = 'btn btn-secondary btn-sm';
-  }
+  loadStats();
+  loadPublishList();
 </script>
 </body>
 </html>

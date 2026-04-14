@@ -73,80 +73,96 @@
 
   <!-- Elections -->
   <h2>Open for Voting</h2>
-  <div class="election-grid mb-4">
-
-    <!-- Already voted -->
-    <div class="election-card voted">
-      <div class="election-meta">
-        <span class="badge badge-active">Active</span>
-        <div class="voted-check">✔ Voted</div>
-      </div>
-      <div class="election-title">Student Council President 2025</div>
-      <div class="election-desc">Vote for the next student council president who will represent student interests for the 2025–2026 academic year.</div>
-      <div class="deadline">Closes: <span>Mar 31, 2025 at 11:59 PM</span></div>
-      <div class="election-footer">
-        <div class="election-stat"><strong>4</strong> candidates</div>
-        <a href="results.html" class="btn btn-success btn-sm">View results</a>
-      </div>
-    </div>
-
-    <!-- Not voted -->
-    <a href="cast-vote.html" class="election-card">
-      <div class="election-meta">
-        <span class="badge badge-active">Active</span>
-        <span class="text-sm text-muted">Not voted</span>
-      </div>
-      <div class="election-title">Best Club of the Year Award</div>
-      <div class="election-desc">Cast your vote for the most outstanding club that contributed to campus life and student development this year.</div>
-      <div class="deadline">Closes: <span>Apr 5, 2025 at 6:00 PM</span></div>
-      <div class="election-footer">
-        <div class="election-stat"><strong>6</strong> candidates</div>
-        <span class="btn btn-primary btn-sm">Vote now →</span>
-      </div>
-    </a>
-
-    <a href="cast-vote.html" class="election-card">
-      <div class="election-meta">
-        <span class="badge badge-active">Active</span>
-        <span class="text-sm text-muted">Not voted</span>
-      </div>
-      <div class="election-title">Faculty Representative Election</div>
-      <div class="election-desc">Choose a faculty representative to liaise between students and the administration on academic matters.</div>
-      <div class="deadline">Closes: <span>Apr 10, 2025 at 5:00 PM</span></div>
-      <div class="election-footer">
-        <div class="election-stat"><strong>3</strong> candidates</div>
-        <span class="btn btn-primary btn-sm">Vote now →</span>
-      </div>
-    </a>
+  <div class="election-grid mb-4" id="activeGrid">
+    <p class="text-muted text-sm">Loading...</p>
   </div>
 
   <!-- Closed elections -->
   <h2>Closed Elections</h2>
-  <div class="election-grid">
-    <div class="election-card" style="opacity:0.7;">
-      <div class="election-meta">
-        <span class="badge badge-closed">Closed</span>
-      </div>
-      <div class="election-title">Sports Captain Vote — 2024</div>
-      <div class="election-desc">Election for sports team captains for the 2024 season across all disciplines.</div>
-      <div class="election-footer">
-        <div class="election-stat"><strong>312</strong> votes cast</div>
-        <a href="results.html" class="btn btn-secondary btn-sm">View results</a>
-      </div>
-    </div>
-    <div class="election-card" style="opacity:0.7;">
-      <div class="election-meta">
-        <span class="badge badge-closed">Closed</span>
-      </div>
-      <div class="election-title">Departmental Head Election</div>
-      <div class="election-desc">Annual election for departmental heads across all faculties.</div>
-      <div class="election-footer">
-        <div class="election-stat"><strong>528</strong> votes cast</div>
-        <a href="results.html" class="btn btn-secondary btn-sm">View results</a>
-      </div>
-    </div>
+  <div class="election-grid" id="closedGrid">
+    <p class="text-muted text-sm">Loading...</p>
   </div>
 
 </div>
-</body>
+</div>
+
+<script>
+  const API = 'http://localhost:5099';
+  const token = localStorage.getItem('token');
+  if (!token) location.href = 'login.html';
+
+  const fullName = localStorage.getItem('fullName') || 'Voter';
+  document.querySelector('.card.card-sm div[style*="font-weight"]').textContent = fullName;
+
+  function authHeaders() {
+    return { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' };
+  }
+
+  async function loadDashboard() {
+    try {
+      // Load voter profile + stats
+      const meRes = await fetch(`${API}/api/voter/me`, { headers: authHeaders() });
+      if (meRes.status === 401) { localStorage.clear(); location.href = 'login.html'; return; }
+      const me = await meRes.json();
+
+      document.querySelector('.card.card-sm div[style*="font-weight"]').textContent = me.fullName;
+      document.querySelectorAll('.stat-value')[0].textContent = me.activeElections;
+      document.querySelectorAll('.stat-sub')[0].textContent  = 'Open for voting';
+      document.querySelectorAll('.stat-value')[1].textContent = me.votesCast;
+      document.querySelectorAll('.stat-sub')[1].textContent  = `Out of ${me.activeElections} elections`;
+      document.querySelectorAll('.stat-value')[2].textContent = me.closedElections;
+
+      // Load elections
+      const elRes = await fetch(`${API}/api/voter/elections`, { headers: authHeaders() });
+      const elections = await elRes.json();
+
+      const active = elections.filter(e => e.status === 'Active');
+      const closed = elections.filter(e => e.status !== 'Active');
+
+      renderElections(active, document.getElementById('activeGrid'), false);
+      renderElections(closed, document.getElementById('closedGrid'), true);
+    } catch(err) {
+      console.error(err);
+    }
+  }
+
+  function renderElections(list, container, isClosed) {
+    container.innerHTML = '';
+    if (!list.length) {
+      container.innerHTML = '<p class="text-muted text-sm">No elections found.</p>';
+      return;
+    }
+    list.forEach(e => {
+      const card = document.createElement(e.hasVoted || isClosed ? 'div' : 'a');
+      card.className = 'election-card' + (e.hasVoted ? ' voted' : '') + (isClosed ? '' : '');
+      if (!e.hasVoted && !isClosed) card.href = `cast-vote.html?electionId=${e.electionId}`;
+      if (isClosed) card.style.opacity = '0.7';
+
+      const badgeClass = e.status === 'Active' ? 'badge-active' : 'badge-closed';
+      const votedBadge = e.hasVoted
+        ? '<div class="voted-check">✔ Voted</div>'
+        : `<span class="text-sm text-muted">${isClosed ? '' : 'Not voted'}</span>`;
+      const actionBtn = e.hasVoted || isClosed
+        ? `<a href="results.html?electionId=${e.electionId}" class="btn btn-${e.hasVoted ? 'success' : 'secondary'} btn-sm">View results</a>`
+        : `<span class="btn btn-primary btn-sm">Vote now →</span>`;
+
+      card.innerHTML = `
+        <div class="election-meta">
+          <span class="badge ${badgeClass}">${e.status}</span>
+          ${votedBadge}
+        </div>
+        <div class="election-title">${e.electionName}</div>
+        <div class="election-desc">Cast your vote in this election.</div>
+        <div class="deadline">Closes: <span>${new Date(e.endDate).toLocaleDateString()}</span></div>
+        <div class="election-footer">
+          <div class="election-stat"><strong>${e.candidateCount}</strong> candidates</div>
+          ${actionBtn}
+        </div>`;
+      container.appendChild(card);
+    });
+  }
+
+  loadDashboard();
+</script>
+
 </html>

@@ -70,23 +70,23 @@
   <div class="stats-grid mb-4">
     <div class="stat-card">
       <div class="stat-label">Total Elections</div>
-      <div class="stat-value" style="color:var(--accent);">5</div>
-      <div class="stat-sub">3 active, 2 closed</div>
+      <div class="stat-value" style="color:var(--accent);" id="statTotal">—</div>
+      <div class="stat-sub" id="statSub">Loading...</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Registered Voters</div>
-      <div class="stat-value" style="color:var(--text);">842</div>
-      <div class="stat-sub">+12 this week</div>
+      <div class="stat-value" style="color:var(--text);" id="statVoters">—</div>
+      <div class="stat-sub">Total voters</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Votes Cast Today</div>
-      <div class="stat-value" style="color:var(--green);">134</div>
+      <div class="stat-value" style="color:var(--green);" id="statToday">—</div>
       <div class="stat-sub">Across all elections</div>
     </div>
     <div class="stat-card">
-      <div class="stat-label">Avg. Turnout</div>
-      <div class="stat-value" style="color:var(--amber);">68%</div>
-      <div class="stat-sub">All-time average</div>
+      <div class="stat-label">Total Candidates</div>
+      <div class="stat-value" style="color:var(--amber);" id="statCandidates">—</div>
+      <div class="stat-sub">All elections</div>
     </div>
   </div>
 
@@ -98,56 +98,9 @@
   <div class="table-wrap mb-4">
     <table>
       <thead>
-        <tr>
-          <th>Election</th>
-          <th>Status</th>
-          <th>Candidates</th>
-          <th>Votes</th>
-          <th>Closes</th>
-          <th>Actions</th>
-        </tr>
+        <tr><th>Election</th><th>Status</th><th>Candidates</th><th>Votes</th><th>Closes</th><th>Actions</th></tr>
       </thead>
-      <tbody>
-        <tr>
-          <td><strong>Student Council President 2025</strong></td>
-          <td><span class="badge badge-active">Active</span></td>
-          <td>4</td>
-          <td>223 / 842 <span class="text-muted">(26%)</span></td>
-          <td><span style="color:var(--amber);">Mar 31</span></td>
-          <td>
-            <div class="action-menu">
-              <a href="admin-elections.html" class="btn btn-secondary btn-sm">Edit</a>
-              <button class="btn btn-danger btn-sm">Close</button>
-            </div>
-          </td>
-        </tr>
-        <tr>
-          <td><strong>Best Club of the Year Award</strong></td>
-          <td><span class="badge badge-active">Active</span></td>
-          <td>6</td>
-          <td>89 / 842 <span class="text-muted">(11%)</span></td>
-          <td>Apr 5</td>
-          <td>
-            <div class="action-menu">
-              <a href="admin-elections.html" class="btn btn-secondary btn-sm">Edit</a>
-              <button class="btn btn-danger btn-sm">Close</button>
-            </div>
-          </td>
-        </tr>
-        <tr>
-          <td><strong>Faculty Representative Election</strong></td>
-          <td><span class="badge badge-active">Active</span></td>
-          <td>3</td>
-          <td>45 / 842 <span class="text-muted">(5%)</span></td>
-          <td>Apr 10</td>
-          <td>
-            <div class="action-menu">
-              <a href="admin-elections.html" class="btn btn-secondary btn-sm">Edit</a>
-              <button class="btn btn-danger btn-sm">Close</button>
-            </div>
-          </td>
-        </tr>
-      </tbody>
+      <tbody id="electionsBody"><tr><td colspan="6" class="text-muted">Loading...</td></tr></tbody>
     </table>
   </div>
 
@@ -159,17 +112,82 @@
   <div class="table-wrap">
     <table>
       <thead>
-        <tr><th>Name</th><th>Email</th><th>Registered</th><th>Votes Cast</th><th>Status</th></tr>
+        <tr><th>Name</th><th>Email</th><th>Votes Cast</th><th>Status</th></tr>
       </thead>
-      <tbody>
-        <tr><td><strong>Alice Mutoni</strong></td><td class="text-muted">alice@example.com</td><td>Mar 28</td><td>2</td><td><span class="badge badge-voter">Voter</span></td></tr>
-        <tr><td><strong>Bob Nkurunziza</strong></td><td class="text-muted">bob@example.com</td><td>Mar 27</td><td>1</td><td><span class="badge badge-voter">Voter</span></td></tr>
-        <tr><td><strong>Claire Uwase</strong></td><td class="text-muted">claire@example.com</td><td>Mar 26</td><td>3</td><td><span class="badge badge-voter">Voter</span></td></tr>
-        <tr><td><strong>David Hakizimana</strong></td><td class="text-muted">david@example.com</td><td>Mar 25</td><td>0</td><td><span class="badge badge-voter">Voter</span></td></tr>
-      </tbody>
+      <tbody id="votersBody"><tr><td colspan="4" class="text-muted">Loading...</td></tr></tbody>
     </table>
   </div>
 </main>
 
+<script>
+  const API = 'http://localhost:5099';
+  const token = localStorage.getItem('token');
+  if (!token) location.href = 'login.html';
+
+  function authH() { return { 'Authorization': 'Bearer ' + token }; }
+
+  async function loadDashboard() {
+    const [statsRes, electionsRes, votersRes] = await Promise.all([
+      fetch(`${API}/api/admin/stats`,    { headers: authH() }),
+      fetch(`${API}/api/admin/elections`,{ headers: authH() }),
+      fetch(`${API}/api/admin/voters`,   { headers: authH() })
+    ]);
+
+    if (statsRes.status === 401) { localStorage.clear(); location.href = 'login.html'; return; }
+
+    const stats    = await statsRes.json();
+    const elections = await electionsRes.json();
+    const voters   = await votersRes.json();
+
+    document.getElementById('statTotal').textContent     = stats.totalElections;
+    document.getElementById('statSub').textContent       = `${stats.activeElections} active, ${stats.closedElections} closed`;
+    document.getElementById('statVoters').textContent    = stats.totalVoters;
+    document.getElementById('statToday').textContent     = stats.todayVotes;
+    document.getElementById('statCandidates').textContent = stats.totalCandidates;
+
+    // Elections table
+    const eb = document.getElementById('electionsBody');
+    eb.innerHTML = '';
+    elections.filter(e => e.status === 'Active').forEach(e => {
+      eb.innerHTML += `
+        <tr>
+          <td><strong>${e.electionName}</strong></td>
+          <td><span class="badge badge-active">Active</span></td>
+          <td>${e.candidateCount}</td>
+          <td>${e.voteCount}</td>
+          <td style="color:var(--amber);">${new Date(e.endDate).toLocaleDateString()}</td>
+          <td>
+            <div style="display:flex;gap:6px;">
+              <button class="btn btn-danger btn-sm" onclick="closeElection(${e.electionId}, this)">Close</button>
+            </div>
+          </td>
+        </tr>`;
+    });
+    if (!elections.filter(e => e.status === 'Active').length)
+      eb.innerHTML = '<tr><td colspan="6" class="text-muted">No active elections.</td></tr>';
+
+    // Voters table (last 5)
+    const vb = document.getElementById('votersBody');
+    vb.innerHTML = '';
+    voters.slice(0, 5).forEach(v => {
+      vb.innerHTML += `
+        <tr>
+          <td><strong>${v.fullName}</strong></td>
+          <td class="text-muted">${v.email}</td>
+          <td>${v.votesCount}</td>
+          <td><span class="badge ${v.status === 'Active' ? 'badge-voter' : 'badge-draft'}">${v.status}</span></td>
+        </tr>`;
+    });
+  }
+
+  async function closeElection(id, btn) {
+    if (!confirm('Close this election?')) return;
+    await fetch(`${API}/api/admin/election/${id}/close`, { method: 'PUT', headers: authH() });
+    btn.closest('tr').remove();
+    loadDashboard();
+  }
+
+  loadDashboard();
+</script>
 </body>
 </html>

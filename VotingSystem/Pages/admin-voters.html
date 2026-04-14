@@ -49,101 +49,107 @@
   <div class="stats-grid mb-4">
     <div class="stat-card">
       <div class="stat-label">Total Registered</div>
-      <div class="stat-value" style="color:var(--accent);">842</div>
+      <div class="stat-value" style="color:var(--accent);" id="statTotal">—</div>
       <div class="stat-sub">All time</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Active Voters</div>
-      <div class="stat-value" style="color:var(--green);">634</div>
-      <div class="stat-sub">Voted at least once</div>
+      <div class="stat-value" style="color:var(--green);" id="statActive">—</div>
+      <div class="stat-sub">Approved accounts</div>
     </div>
     <div class="stat-card">
-      <div class="stat-label">New This Week</div>
-      <div class="stat-value" style="color:var(--amber);">12</div>
-      <div class="stat-sub">Registered recently</div>
+      <div class="stat-label">Pending Approval</div>
+      <div class="stat-value" style="color:var(--amber);" id="statPending">—</div>
+      <div class="stat-sub">Awaiting review</div>
     </div>
   </div>
 
   <div class="search-bar">
-    <input type="text" placeholder="🔍  Search by name or email..."/>
-    <select style="width:auto;">
-      <option>All voters</option>
-      <option>Has voted</option>
-      <option>Not voted yet</option>
+    <input type="text" id="searchInput" placeholder="🔍  Search by name or email..." oninput="filterVoters()"/>
+    <select id="filterStatus" style="width:auto;" onchange="filterVoters()">
+      <option value="">All voters</option>
+      <option value="Active">Active</option>
+      <option value="Pending">Pending</option>
     </select>
   </div>
 
   <div class="table-wrap">
     <table>
       <thead>
-        <tr><th>Name</th><th>Email</th><th>Voter ID</th><th>Registered</th><th>Votes Cast</th><th>Role</th><th>Actions</th></tr>
+        <tr><th>Name</th><th>Email</th><th>National ID</th><th>Votes Cast</th><th>Status</th><th>Actions</th></tr>
       </thead>
-      <tbody>
-        <tr>
-          <td><strong>Alice Mutoni</strong></td>
-          <td class="text-muted">alice@example.com</td>
-          <td class="text-muted" style="font-size:0.78rem;">VT-00123</td>
-          <td class="text-muted">Mar 28</td>
-          <td>2</td>
-          <td><span class="badge badge-voter">Voter</span></td>
-          <td><div style="display:flex;gap:6px;"><button class="btn btn-secondary btn-sm">View</button><button class="btn btn-danger btn-sm">Remove</button></div></td>
-        </tr>
-        <tr>
-          <td><strong>Bob Nkurunziza</strong></td>
-          <td class="text-muted">bob@example.com</td>
-          <td class="text-muted" style="font-size:0.78rem;">VT-00124</td>
-          <td class="text-muted">Mar 27</td>
-          <td>1</td>
-          <td><span class="badge badge-voter">Voter</span></td>
-          <td><div style="display:flex;gap:6px;"><button class="btn btn-secondary btn-sm">View</button><button class="btn btn-danger btn-sm">Remove</button></div></td>
-        </tr>
-        <tr>
-          <td><strong>Claire Uwase</strong></td>
-          <td class="text-muted">claire@example.com</td>
-          <td class="text-muted" style="font-size:0.78rem;">VT-00125</td>
-          <td class="text-muted">Mar 26</td>
-          <td>3</td>
-          <td><span class="badge badge-voter">Voter</span></td>
-          <td><div style="display:flex;gap:6px;"><button class="btn btn-secondary btn-sm">View</button><button class="btn btn-danger btn-sm">Remove</button></div></td>
-        </tr>
-        <tr>
-          <td><strong>David Hakizimana</strong></td>
-          <td class="text-muted">david@example.com</td>
-          <td class="text-muted" style="font-size:0.78rem;">VT-00126</td>
-          <td class="text-muted">Mar 25</td>
-          <td>0</td>
-          <td><span class="badge badge-voter">Voter</span></td>
-          <td><div style="display:flex;gap:6px;"><button class="btn btn-secondary btn-sm">View</button><button class="btn btn-danger btn-sm">Remove</button></div></td>
-        </tr>
-        <tr>
-          <td><strong>Emma Ingabire</strong></td>
-          <td class="text-muted">emma@example.com</td>
-          <td class="text-muted" style="font-size:0.78rem;">VT-00127</td>
-          <td class="text-muted">Mar 24</td>
-          <td>2</td>
-          <td><span class="badge badge-voter">Voter</span></td>
-          <td><div style="display:flex;gap:6px;"><button class="btn btn-secondary btn-sm">View</button><button class="btn btn-danger btn-sm">Remove</button></div></td>
-        </tr>
-        <tr>
-          <td><strong>Admin User</strong></td>
-          <td class="text-muted">admin@votems.com</td>
-          <td class="text-muted" style="font-size:0.78rem;">—</td>
-          <td class="text-muted">Jan 1</td>
-          <td>—</td>
-          <td><span class="badge badge-admin">Admin</span></td>
-          <td><div style="display:flex;gap:6px;"><button class="btn btn-secondary btn-sm" disabled>View</button></div></td>
-        </tr>
-      </tbody>
+      <tbody id="votersBody"><tr><td colspan="6" class="text-muted">Loading...</td></tr></tbody>
     </table>
   </div>
-
   <div class="flex justify-between items-center mt-3">
-    <span class="text-muted text-sm">Showing 6 of 842 voters</span>
-    <div class="flex gap-2">
-      <button class="btn btn-secondary btn-sm">← Prev</button>
-      <button class="btn btn-secondary btn-sm">Next →</button>
-    </div>
+    <span class="text-muted text-sm" id="voterCount"></span>
   </div>
 </main>
+
+<script>
+  const API = 'http://localhost:5099';
+  const token = localStorage.getItem('token');
+  if (!token) location.href = 'login.html';
+  function authH() { return { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }; }
+
+  let allVoters = [];
+
+  async function loadVoters() {
+    const res = await fetch(`${API}/api/admin/voters`, { headers: authH() });
+    if (res.status === 401) { localStorage.clear(); location.href = 'login.html'; return; }
+    allVoters = await res.json();
+
+    document.getElementById('statTotal').textContent   = allVoters.length;
+    document.getElementById('statActive').textContent  = allVoters.filter(v => v.status === 'Active').length;
+    document.getElementById('statPending').textContent = allVoters.filter(v => v.status === 'Pending').length;
+
+    renderVoters(allVoters);
+  }
+
+  function renderVoters(list) {
+    const tbody = document.getElementById('votersBody');
+    tbody.innerHTML = '';
+    document.getElementById('voterCount').textContent = `Showing ${list.length} of ${allVoters.length} voters`;
+    if (!list.length) { tbody.innerHTML = '<tr><td colspan="6" class="text-muted">No voters found.</td></tr>'; return; }
+    list.forEach(v => {
+      tbody.innerHTML += `
+        <tr>
+          <td><strong>${v.fullName}</strong></td>
+          <td class="text-muted">${v.email}</td>
+          <td class="text-muted" style="font-size:0.78rem;">${v.nationalId || '—'}</td>
+          <td>${v.votesCount}</td>
+          <td><span class="badge ${v.status === 'Active' ? 'badge-voter' : 'badge-draft'}">${v.status}</span></td>
+          <td>
+            <div style="display:flex;gap:6px;">
+              ${v.status === 'Pending' ? `<button class="btn btn-success btn-sm" onclick="approveVoter(${v.userId}, this)">✔ Approve</button>` : ''}
+              <button class="btn btn-danger btn-sm" onclick="removeVoter(${v.userId}, this)">Remove</button>
+            </div>
+          </td>
+        </tr>`;
+    });
+  }
+
+  function filterVoters() {
+    const q      = document.getElementById('searchInput').value.toLowerCase();
+    const status = document.getElementById('filterStatus').value;
+    renderVoters(allVoters.filter(v =>
+      (!q || v.fullName.toLowerCase().includes(q) || v.email.toLowerCase().includes(q)) &&
+      (!status || v.status === status)
+    ));
+  }
+
+  async function approveVoter(id, btn) {
+    await fetch(`${API}/api/admin/approve-voter/${id}`, { method: 'PUT', headers: authH() });
+    loadVoters();
+  }
+
+  async function removeVoter(id, btn) {
+    if (!confirm('Remove this voter?')) return;
+    await fetch(`${API}/api/admin/voter/${id}`, { method: 'DELETE', headers: authH() });
+    loadVoters();
+  }
+
+  loadVoters();
+</script>
 </body>
 </html>

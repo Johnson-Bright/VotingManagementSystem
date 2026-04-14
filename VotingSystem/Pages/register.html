@@ -48,22 +48,32 @@
     <div class="grid-2">
       <div class="form-group">
         <label>First name</label>
-        <input type="text" placeholder="John" />
+        <input type="text" id="firstName" placeholder="John" />
       </div>
       <div class="form-group">
         <label>Last name</label>
-        <input type="text" placeholder="Doe" />
+        <input type="text" id="lastName" placeholder="Doe" />
       </div>
     </div>
 
     <div class="form-group">
       <label>Email address</label>
-      <input type="email" placeholder="john@example.com" />
+      <input type="email" id="email" placeholder="john@example.com" />
+    </div>
+
+    <div class="form-group">
+      <label>Create password</label>
+      <input type="password" id="password" placeholder="••••••••" />
+    </div>
+
+    <div class="form-group">
+      <label>Confirm password</label>
+      <input type="password" id="confirmPassword" placeholder="••••••••" />
     </div>
 
     <div class="form-group">
       <label>National ID</label>
-      <input type="text" placeholder="e.g. 1 1990 8 0123456 7 89" />
+      <input type="text" id="nationalId" placeholder="e.g. 1 1990 8 0123456 7 89" />
     </div>
 
     <div class="form-group">
@@ -82,11 +92,11 @@
       <p style="font-size:0.82rem;font-weight:600;color:var(--accent);margin-bottom:14px;">🏅 Candidate Details</p>
       <div class="form-group">
         <label>Party / Affiliation</label>
-        <input type="text" placeholder="e.g. Progressive Students Alliance" />
+        <input type="text" id="party" placeholder="e.g. Progressive Students Alliance" />
       </div>
       <div class="form-group">
         <label>Position Applying For</label>
-        <select>
+        <select id="position">
           <option value="">Select a position...</option>
           <option>Student Council President</option>
           <option>Vice President</option>
@@ -97,18 +107,8 @@
       </div>
       <div class="form-group">
         <label>Manifesto / Campaign Statement</label>
-        <textarea rows="3" placeholder="Briefly describe your goals and plans..."></textarea>
+        <textarea rows="3" id="manifesto" placeholder="Briefly describe your goals and plans..."></textarea>
       </div>
-    </div>
-
-    <div class="form-group">
-      <label>Password</label>
-      <input type="password" placeholder="Min. 8 characters" />
-    </div>
-
-    <div class="form-group">
-      <label>Confirm password</label>
-      <input type="password" placeholder="Repeat password" />
     </div>
 
     <div class="form-group" style="margin-bottom:24px;">
@@ -135,6 +135,7 @@
     .role-btn.active { background: var(--accent); border-color: var(--accent); color: white; }
   </style>
   <script>
+    const API_BASE_URL = 'http://localhost:5099';
     let currentRole = 'voter';
     function setRole(role) {
       currentRole = role;
@@ -143,7 +144,64 @@
       document.getElementById('roleSubtitle').textContent = role === 'candidate' ? 'Create your candidate account' : 'Create your voter account';
     }
     function doRegister() {
-      location.href = currentRole === 'candidate' ? 'candidate-dashboard.html' : 'voter-dashboard.html';
+      const firstName = document.getElementById('firstName').value.trim();
+      const lastName = document.getElementById('lastName').value.trim();
+      const fullName = `${firstName} ${lastName}`.trim();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+      const nationalId = document.getElementById('nationalId').value.trim();
+
+      if (!firstName || !lastName || !email || !password || !confirmPassword) {
+        alert('Please fill in all required fields');
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        alert('Passwords do not match');
+        return;
+      }
+
+      if (password.length < 8) {
+        alert('Password must be at least 8 characters long');
+        return;
+      }
+
+      const role = currentRole === 'candidate' ? 'Candidate' : 'Voter';
+
+      const body = {
+        fullName,
+        email,
+        password,
+        role,
+        nationalId: role === 'Voter' ? nationalId : ''
+      };
+
+      fetch(`${API_BASE_URL}/api/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      })
+      .then(async (res) => {
+        const raw = await res.text();
+        let data = {};
+
+        try {
+          data = raw ? JSON.parse(raw) : {};
+        } catch {
+          data = { message: raw };
+        }
+
+        if (!res.ok) {
+          throw new Error(data.message || 'Registration failed');
+        }
+
+        alert(data.message || 'Registration successful! Please login.');
+        location.href = 'login.html';
+      })
+      .catch(err => {
+        alert('Error: ' + err.message);
+      });
     }
   </script>
 </div>

@@ -38,7 +38,7 @@
     </div>
     <div class="card card-sm text-right" style="padding:14px 20px;">
       <div class="text-sm text-muted">Logged in as</div>
-      <div style="font-weight:600;margin-top:2px;">Alice Mutoni</div>
+      <div style="font-weight:600;margin-top:2px;" id="candidateName">Loading...</div>
       <div class="mt-1"><span class="badge" style="background:#1A1030;color:var(--accent2);border:1px solid #2A1A4A;">🏅 Candidate</span></div>
     </div>
   </div>
@@ -47,84 +47,34 @@
   <div class="stats-grid">
     <div class="stat-card">
       <div class="stat-label">Elections Running In</div>
-      <div class="stat-value" style="color:var(--accent);">2</div>
+      <div class="stat-value" style="color:var(--accent);" id="statElections">—</div>
       <div class="stat-sub">Currently active</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Total Votes Received</div>
-      <div class="stat-value" style="color:var(--green);">223</div>
+      <div class="stat-value" style="color:var(--green);" id="statVotes">—</div>
       <div class="stat-sub">Across all elections</div>
     </div>
     <div class="stat-card">
-      <div class="stat-label">Current Ranking</div>
-      <div class="stat-value" style="color:var(--amber);">#1</div>
-      <div class="stat-sub">Student Council 2025</div>
-    </div>
-    <div class="stat-card">
       <div class="stat-label">Elections Won</div>
-      <div class="stat-value" style="color:var(--green);">1</div>
+      <div class="stat-value" style="color:var(--amber);" id="statWon">—</div>
       <div class="stat-sub">All time</div>
     </div>
   </div>
 
-  <!-- Active Elections -->
   <h2>My Active Elections</h2>
-  <div class="info-grid mb-4">
-
-    <div class="election-item running">
-      <div class="flex justify-between items-center mb-2">
-        <span class="badge badge-active">Active</span>
-        <span style="font-size:0.78rem;color:var(--muted);">Closes Mar 31</span>
-      </div>
-      <div class="election-title">Student Council President 2025</div>
-      <div class="election-pos">Position: President</div>
-      <div class="vote-bar-label"><span>Your votes</span><span style="color:var(--green);font-weight:600;">223 (52.1%)</span></div>
-      <div class="progress-wrap">
-        <div class="progress-bar"><div class="progress-fill green" style="width:52%"></div></div>
-      </div>
-      <div style="font-size:0.78rem;color:var(--muted);margin-top:6px;">Leading — 428 total votes cast</div>
-    </div>
-
-    <div class="election-item running">
-      <div class="flex justify-between items-center mb-2">
-        <span class="badge badge-active">Active</span>
-        <span style="font-size:0.78rem;color:var(--muted);">Closes Apr 10</span>
-      </div>
-      <div class="election-title">Faculty Representative Election</div>
-      <div class="election-pos">Position: Faculty Rep</div>
-      <div class="vote-bar-label"><span>Your votes</span><span style="color:var(--accent);font-weight:600;">18 (40%)</span></div>
-      <div class="progress-wrap">
-        <div class="progress-bar"><div class="progress-fill" style="width:40%"></div></div>
-      </div>
-      <div style="font-size:0.78rem;color:var(--muted);margin-top:6px;">2nd place — 45 total votes cast</div>
-    </div>
-
+  <div class="info-grid mb-4" id="activeElections">
+    <p class="text-muted text-sm">Loading...</p>
   </div>
 
-  <!-- Closed Elections -->
   <h2>Past Elections</h2>
   <div class="table-wrap">
     <table>
       <thead>
-        <tr><th>Election</th><th>Position</th><th>Votes Received</th><th>Rank</th><th>Result</th><th></th></tr>
+        <tr><th>Election</th><th>Party</th><th>Votes Received</th><th>Rank</th><th>Result</th><th></th></tr>
       </thead>
-      <tbody>
-        <tr>
-          <td><strong>Sports Captain Vote 2024</strong></td>
-          <td class="text-muted">Sports Captain</td>
-          <td>312</td>
-          <td style="color:var(--amber);">#1 🏆</td>
-          <td><span class="badge badge-active">Won</span></td>
-          <td><a href="results.html" class="btn btn-secondary btn-sm">View Results</a></td>
-        </tr>
-        <tr>
-          <td><strong>Departmental Head Election</strong></td>
-          <td class="text-muted">Dept. Head</td>
-          <td>89</td>
-          <td class="text-muted">#3</td>
-          <td><span class="badge badge-closed">Lost</span></td>
-          <td><a href="results.html" class="btn btn-secondary btn-sm">View Results</a></td>
-        </tr>
+      <tbody id="pastElectionsBody">
+        <tr><td colspan="6" class="text-muted text-sm">Loading...</td></tr>
       </tbody>
     </table>
   </div>
@@ -134,5 +84,68 @@
   </div>
 
 </div>
+<script>
+  const API = 'http://localhost:5099';
+  const token = localStorage.getItem('token');
+  if (!token) location.href = 'login.html';
+
+  async function loadDashboard() {
+    const res = await fetch(`${API}/api/candidate/me`, { headers: { 'Authorization': 'Bearer ' + token } });
+    if (res.status === 401) { localStorage.clear(); location.href = 'login.html'; return; }
+    const data = await res.json();
+
+    document.getElementById('candidateName').textContent = data.fullName;
+    document.getElementById('statVotes').textContent = data.totalVotes;
+    document.getElementById('statWon').textContent = data.electionsWon;
+
+    const active = data.candidacies.filter(c => c.status === 'Active');
+    const past   = data.candidacies.filter(c => c.status !== 'Active');
+
+    document.getElementById('statElections').textContent = active.length;
+
+    const activeEl = document.getElementById('activeElections');
+    activeEl.innerHTML = '';
+    if (!active.length) {
+      activeEl.innerHTML = '<p class="text-muted text-sm">Not running in any active elections.</p>';
+    } else {
+      active.forEach(c => {
+        const pct = c.totalVotesInElection > 0 ? ((c.votesReceived / c.totalVotesInElection) * 100).toFixed(1) : 0;
+        activeEl.innerHTML += `
+          <div class="election-item running">
+            <div class="flex justify-between items-center mb-2">
+              <span class="badge badge-active">Active</span>
+              <span style="font-size:0.78rem;color:var(--muted);">Closes ${new Date(c.endDate).toLocaleDateString()}</span>
+            </div>
+            <div class="election-title">${c.electionName}</div>
+            <div class="election-pos">Party: ${c.party || 'Independent'}</div>
+            <div class="vote-bar-label"><span>Your votes</span><span style="color:var(--green);font-weight:600;">${c.votesReceived} (${pct}%)</span></div>
+            <div class="progress-wrap"><div class="progress-bar"><div class="progress-fill green" style="width:${pct}%"></div></div></div>
+            <div style="font-size:0.78rem;color:var(--muted);margin-top:6px;">Rank #${c.rank} — ${c.totalVotesInElection} total votes cast</div>
+          </div>`;
+      });
+    }
+
+    const tbody = document.getElementById('pastElectionsBody');
+    tbody.innerHTML = '';
+    if (!past.length) {
+      tbody.innerHTML = '<tr><td colspan="6" class="text-muted text-sm">No past elections.</td></tr>';
+    } else {
+      past.forEach(c => {
+        const won = c.rank === 1;
+        tbody.innerHTML += `
+          <tr>
+            <td><strong>${c.electionName}</strong></td>
+            <td class="text-muted">${c.party || 'Independent'}</td>
+            <td>${c.votesReceived}</td>
+            <td style="color:var(--amber);">#${c.rank} ${won ? '🏆' : ''}</td>
+            <td><span class="badge ${won ? 'badge-active' : 'badge-closed'}">${won ? 'Won' : 'Lost'}</span></td>
+            <td><a href="results.html?electionId=${c.electionId}" class="btn btn-secondary btn-sm">View Results</a></td>
+          </tr>`;
+      });
+    }
+  }
+
+  loadDashboard();
+</script>
 </body>
 </html>
