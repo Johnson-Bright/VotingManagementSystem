@@ -12,14 +12,6 @@
       display: flex; align-items: center; justify-content: center;
       font-size: 2.4rem; flex-shrink: 0;
     }
-    .upload-btn {
-      display: inline-flex; align-items: center; gap: 6px;
-      font-size: 0.82rem; color: var(--accent); cursor: pointer;
-      background: none; border: 1px dashed var(--accent);
-      border-radius: 8px; padding: 6px 14px; margin-top: 10px;
-      font-family: 'DM Sans', sans-serif; transition: background 0.18s;
-    }
-    .upload-btn:hover { background: #0D1A30; }
     .section-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 28px; margin-bottom: 20px; }
     .section-card h2 { margin-bottom: 20px; }
   </style>
@@ -49,11 +41,10 @@
   <div class="section-card">
     <h2>Photo & Identity</h2>
     <div class="flex gap-4 items-center mb-3">
-      <div class="profile-avatar">👩</div>
+      <div class="profile-avatar" id="avatarInitial">...</div>
       <div>
-        <div style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700;">Alice Mutoni</div>
-        <div style="font-size:0.82rem;color:var(--muted);margin-top:2px;">Candidate ID: CD-00041</div>
-        <button class="upload-btn">📷 Upload Photo</button>
+        <div style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700;" id="profileName">Loading...</div>
+        <div style="font-size:0.82rem;color:var(--muted);margin-top:2px;" id="profileId">Candidate</div>
       </div>
     </div>
   </div>
@@ -64,24 +55,16 @@
     <div class="grid-2">
       <div class="form-group">
         <label>First Name</label>
-        <input type="text" value="Alice" />
+        <input type="text" id="firstName" placeholder="First name" />
       </div>
       <div class="form-group">
         <label>Last Name</label>
-        <input type="text" value="Mutoni" />
+        <input type="text" id="lastName" placeholder="Last name" />
       </div>
     </div>
     <div class="form-group">
       <label>Email Address</label>
-      <input type="email" value="alice@example.com" />
-    </div>
-    <div class="form-group">
-      <label>Phone / Contact</label>
-      <input type="text" placeholder="+250 7XX XXX XXX" />
-    </div>
-    <div class="form-group">
-      <label>Address</label>
-      <input type="text" placeholder="Your address" />
+      <input type="email" id="email" placeholder="email@example.com" />
     </div>
   </div>
 
@@ -90,61 +73,115 @@
     <h2>Campaign Information</h2>
     <div class="form-group">
       <label>Party / Affiliation</label>
-      <input type="text" value="Progressive Students Alliance" />
-    </div>
-    <div class="form-group">
-      <label>Position Contesting</label>
-      <select>
-        <option selected>Student Council President</option>
-        <option>Vice President</option>
-        <option>Secretary</option>
-        <option>Faculty Representative</option>
-        <option>Sports Captain</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label>Manifesto / Campaign Statement</label>
-      <textarea rows="5">I believe in transparent governance, student welfare, and academic excellence. My plan includes improving campus facilities, creating more internship opportunities, and ensuring every student's voice is heard in decision-making.</textarea>
-    </div>
-    <div class="form-group">
-      <label>Biography</label>
-      <textarea rows="4" placeholder="Tell voters about your background, achievements, and experience...">3rd year Computer Science student. Former class representative for 2 years. Organized 3 campus events and led the student welfare committee.</textarea>
+      <input type="text" id="party" placeholder="e.g. Progressive Students Alliance" />
     </div>
   </div>
 
-  <!-- Election Schedule (View Only) -->
+  <!-- Election Schedule -->
   <div class="section-card">
     <h2>Election Schedule</h2>
     <div class="table-wrap">
       <table>
         <thead>
-          <tr><th>Election</th><th>Position</th><th>Start</th><th>End</th><th>Status</th></tr>
+          <tr><th>Election</th><th>Party</th><th>Start</th><th>End</th><th>Status</th><th>Votes</th></tr>
         </thead>
-        <tbody>
-          <tr>
-            <td><strong>Student Council President 2025</strong></td>
-            <td class="text-muted">President</td>
-            <td class="text-muted">Mar 25</td>
-            <td style="color:var(--amber);">Mar 31</td>
-            <td><span class="badge badge-active">Active</span></td>
-          </tr>
-          <tr>
-            <td><strong>Faculty Representative Election</strong></td>
-            <td class="text-muted">Faculty Rep</td>
-            <td class="text-muted">Mar 29</td>
-            <td>Apr 10</td>
-            <td><span class="badge badge-active">Active</span></td>
-          </tr>
+        <tbody id="electionSchedule">
+          <tr><td colspan="6" class="text-muted text-sm">Loading...</td></tr>
         </tbody>
       </table>
     </div>
   </div>
 
   <div class="flex gap-3">
-    <button class="btn btn-primary" onclick="alert('Profile saved successfully!')">💾 Save Changes</button>
+    <button class="btn btn-primary" onclick="saveProfile()">💾 Save Changes</button>
     <a href="candidate-dashboard.html" class="btn btn-secondary">← Back to Dashboard</a>
   </div>
 
 </div>
+
+<script>
+  const API = 'http://localhost:5099';
+  const token = localStorage.getItem('token');
+  if (!token) location.href = 'login.html';
+
+  function authH() {
+    return { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' };
+  }
+
+  async function loadProfile() {
+    const res = await fetch(`${API}/api/candidate/me`, { headers: authH() });
+    if (res.status === 401) { localStorage.clear(); location.href = 'login.html'; return; }
+    if (!res.ok) { alert('Failed to load profile'); return; }
+
+    const data = await res.json();
+
+    // Identity section
+    const initials = data.fullName ? data.fullName.charAt(0).toUpperCase() : '?';
+    document.getElementById('avatarInitial').textContent = initials;
+    document.getElementById('profileName').textContent   = data.fullName;
+    document.getElementById('profileId').textContent     = `User ID: ${data.userId}`;
+
+    // Split full name into first/last
+    const parts = (data.fullName || '').split(' ');
+    document.getElementById('firstName').value = parts[0] || '';
+    document.getElementById('lastName').value  = parts.slice(1).join(' ') || '';
+    document.getElementById('email').value     = data.email || '';
+
+    // Party — use first candidacy's party
+    const firstParty = data.candidacies && data.candidacies.length > 0
+      ? (data.candidacies[0].party || '') : '';
+    document.getElementById('party').value = firstParty;
+
+    // Election schedule
+    const tbody = document.getElementById('electionSchedule');
+    tbody.innerHTML = '';
+    if (!data.candidacies || !data.candidacies.length) {
+      tbody.innerHTML = '<tr><td colspan="6" class="text-muted">Not registered in any elections.</td></tr>';
+    } else {
+      data.candidacies.forEach(c => {
+        const badgeClass = c.status === 'Active' ? 'badge-active'
+                         : c.status === 'Closed' ? 'badge-closed' : 'badge-draft';
+        tbody.innerHTML += `
+          <tr>
+            <td><strong>${c.electionName}</strong></td>
+            <td class="text-muted">${c.party || 'Independent'}</td>
+            <td class="text-muted">${new Date(c.startDate).toLocaleDateString()}</td>
+            <td class="${c.status === 'Active' ? '' : 'text-muted'}">${new Date(c.endDate).toLocaleDateString()}</td>
+            <td><span class="badge ${badgeClass}">${c.status}</span></td>
+            <td style="color:var(--green);font-weight:600;">${c.votesReceived}</td>
+          </tr>`;
+      });
+    }
+  }
+
+  async function saveProfile() {
+    const firstName = document.getElementById('firstName').value.trim();
+    const lastName  = document.getElementById('lastName').value.trim();
+    const fullName  = `${firstName} ${lastName}`.trim();
+    const email     = document.getElementById('email').value.trim();
+    const party     = document.getElementById('party').value.trim();
+
+    if (!fullName || !email) { alert('Name and email are required'); return; }
+
+    const res = await fetch(`${API}/api/candidate/me`, {
+      method: 'PUT',
+      headers: authH(),
+      body: JSON.stringify({ fullName, email, party })
+    });
+
+    if (res.ok) {
+      // Update localStorage name so nav reflects change
+      localStorage.setItem('fullName', fullName);
+      document.getElementById('profileName').textContent = fullName;
+      document.getElementById('avatarInitial').textContent = fullName.charAt(0).toUpperCase();
+      alert('Profile saved successfully!');
+    } else {
+      const d = await res.json();
+      alert('Failed to save: ' + (d.message || res.statusText));
+    }
+  }
+
+  loadProfile();
+</script>
 </body>
 </html>

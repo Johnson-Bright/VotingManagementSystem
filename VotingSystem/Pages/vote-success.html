@@ -38,15 +38,15 @@
     <div style="font-size:0.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;">Vote receipt</div>
     <div class="receipt-row">
       <span>Election</span>
-      <span>Best Club of the Year Award</span>
+      <span id="receiptElection">—</span>
     </div>
     <div class="receipt-row">
       <span>Voted for</span>
-      <span style="color:var(--accent);">Tech Innovation Club</span>
+      <span style="color:var(--accent);" id="receiptCandidate">—</span>
     </div>
     <div class="receipt-row">
       <span>Time</span>
-      <span>Mar 30, 2025 — 14:32</span>
+      <span id="receiptTime">—</span>
     </div>
     <div class="receipt-row">
       <span>Status</span>
@@ -64,4 +64,10 @@
   </div>
 </div>
 </body>
+<script>
+  const p = new URLSearchParams(window.location.search);
+  document.getElementById('receiptElection').textContent  = p.get('election')  || '—';
+  document.getElementById('receiptCandidate').textContent = p.get('candidate') || '—';
+  document.getElementById('receiptTime').textContent      = new Date().toLocaleString();
+</script>
 </html>

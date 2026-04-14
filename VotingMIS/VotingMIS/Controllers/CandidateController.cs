@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using VotingMIS.Data;
+using VotingMIS.DTOs;
 using System.Security.Claims;
 
 namespace VotingMIS.Controllers
@@ -21,7 +22,6 @@ namespace VotingMIS.Controllers
             var user   = _context.Users.FirstOrDefault(u => u.UserId == userId);
             if (user == null) return NotFound();
 
-            // Pull candidacies into memory first, then compute rank client-side
             var candidacies = _context.Candidates
                 .Where(c => c.UserId == userId)
                 .Select(c => new {
@@ -35,7 +35,6 @@ namespace VotingMIS.Controllers
                 })
                 .ToList();
 
-            // Compute rank in memory
             var result = candidacies.Select(c => {
                 var ranked = _context.Candidates
                     .Where(x => x.ElectionId == c.ElectionId)
@@ -61,6 +60,28 @@ namespace VotingMIS.Controllers
                 ElectionsWon = electionsWon,
                 Candidacies  = result
             });
+        }
+
+        // PUT api/candidate/me — update name + party across all candidacies
+        [HttpPut("me")]
+        public async Task<IActionResult> UpdateMe([FromBody] UpdateCandidateRequest request)
+        {
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var user   = await _context.Users.FindAsync(userId);
+            if (user == null) return NotFound();
+
+            user.FullName = request.FullName ?? user.FullName;
+            user.Email    = request.Email    ?? user.Email;
+
+            // Update party on all candidacies if provided
+            if (request.Party != null)
+            {
+                var candidacies = _context.Candidates.Where(c => c.UserId == userId).ToList();
+                foreach (var c in candidacies) c.Party = request.Party;
+            }
+
+            await _context.SaveChangesAsync();
+            return Ok(new { message = "Profile updated successfully" });
         }
     }
 }
