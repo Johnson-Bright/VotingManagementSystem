@@ -33,16 +33,16 @@
 <aside class="sidebar">
   <div class="sidebar-logo"><div class="dot"></div> VoteMS <span class="badge badge-admin" style="margin-left:auto;font-size:0.65rem;">Admin</span></div>
   <div class="sidebar-section">Overview</div>
-  <a href="admin-dashboard.html" class="sidebar-link"><span class="icon">📊</span> Dashboard</a>
-  <a href="admin-elections.html" class="sidebar-link active"><span class="icon">🗳️</span> Elections</a>
-  <a href="admin-voters.html" class="sidebar-link"><span class="icon">👥</span> Voters</a>
-  <a href="admin-candidates.html" class="sidebar-link"><span class="icon">🏅</span> Candidates</a>
+  <a href="admin-dashboard.html" class="sidebar-link"><span class="icon"></span> Dashboard</a>
+  <a href="admin-elections.html" class="sidebar-link active"><span class="icon"></span> Elections</a>
+  <a href="admin-voters.html" class="sidebar-link"><span class="icon"></span> Voters</a>
+  <a href="admin-candidates.html" class="sidebar-link"><span class="icon"></span> Candidates</a>
   <div class="sidebar-section" style="margin-top:8px;">Reports</div>
-  <a href="results.html" class="sidebar-link"><span class="icon">📈</span> Results</a>
-  <a href="admin-reports.html" class="sidebar-link"><span class="icon">📋</span> Reports</a>
+  <a href="results.html" class="sidebar-link"><span class="icon"></span> Results</a>
+  <a href="admin-reports.html" class="sidebar-link"><span class="icon"></span> Reports</a>
   <div class="sidebar-footer">
     <div style="font-size:0.82rem;color:var(--muted);padding:0 12px 10px;">Admin User</div>
-    <a href="login.html" class="sidebar-link"><span class="icon">🚪</span> Sign out</a>
+    <a href="login.html" class="sidebar-link"><span class="icon"></span> Sign out</a>
   </div>
 </aside>
 
@@ -53,6 +53,16 @@
       <p class="subtitle">Create, edit, and control all elections</p>
     </div>
     <button class="btn btn-primary" onclick="document.getElementById('newModal').classList.add('open')">+ New Election</button>
+  </div>
+
+  <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
+    <input type="text" id="searchInput" placeholder="Search elections..." style="flex:1;min-width:200px;" oninput="filterElections()"/>
+    <select id="statusFilter" style="width:auto;" onchange="filterElections()">
+      <option value="">All statuses</option>
+      <option value="Active">Active</option>
+      <option value="Upcoming">Upcoming</option>
+      <option value="Closed">Closed</option>
+    </select>
   </div>
 
   <div class="table-wrap">
@@ -88,14 +98,20 @@
   if (!token) location.href = 'login.html';
   function authH() { return { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }; }
 
+  let allElections = [];
+
   async function loadElections() {
     const res = await fetch(`${API}/api/admin/elections`, { headers: authH() });
     if (res.status === 401) { localStorage.clear(); location.href = 'login.html'; return; }
-    const elections = await res.json();
+    allElections = await res.json();
+    renderElections(allElections);
+  }
+
+  function renderElections(list) {
     const tbody = document.getElementById('electionsBody');
     tbody.innerHTML = '';
-    if (!elections.length) { tbody.innerHTML = '<tr><td colspan="7" class="text-muted">No elections found.</td></tr>'; return; }
-    elections.forEach(e => {
+    if (!list.length) { tbody.innerHTML = '<tr><td colspan="7" class="text-muted">No elections found.</td></tr>'; return; }
+    list.forEach(e => {
       const badgeClass = e.status === 'Active' ? 'badge-active' : e.status === 'Closed' ? 'badge-closed' : 'badge-draft';
       const actions = e.status === 'Active'
         ? `<button class="btn btn-danger btn-sm" onclick="closeElection(${e.electionId})">Close</button>`
@@ -111,6 +127,15 @@
           <td><div style="display:flex;gap:6px;">${actions}</div></td>
         </tr>`;
     });
+  }
+
+  function filterElections() {
+    const q      = document.getElementById('searchInput').value.toLowerCase();
+    const status = document.getElementById('statusFilter').value;
+    renderElections(allElections.filter(e =>
+      (!q || e.electionName.toLowerCase().includes(q)) &&
+      (!status || e.status === status)
+    ));
   }
 
   async function createElection() {

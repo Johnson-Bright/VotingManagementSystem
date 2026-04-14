@@ -140,11 +140,11 @@
 
       const badgeClass = e.status === 'Active' ? 'badge-active' : 'badge-closed';
       const votedBadge = e.hasVoted
-        ? '<div class="voted-check">✔ Voted</div>'
+        ? '<div class="voted-check">Voted</div>'
         : `<span class="text-sm text-muted">${isClosed ? '' : 'Not voted'}</span>`;
       const actionBtn = e.hasVoted || isClosed
         ? `<a href="results.html?electionId=${e.electionId}" class="btn btn-${e.hasVoted ? 'success' : 'secondary'} btn-sm">View results</a>`
-        : `<span class="btn btn-primary btn-sm">Vote now →</span>`;
+        : `<span class="btn btn-primary btn-sm">Vote now</span>`;
 
       card.innerHTML = `
         <div class="election-meta">

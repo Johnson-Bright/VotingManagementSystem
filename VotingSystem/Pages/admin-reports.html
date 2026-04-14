@@ -40,16 +40,16 @@
 <aside class="sidebar">
   <div class="sidebar-logo"><div class="dot"></div> VoteMS <span class="badge badge-admin" style="margin-left:auto;font-size:0.65rem;">Admin</span></div>
   <div class="sidebar-section">Overview</div>
-  <a href="admin-dashboard.html" class="sidebar-link"><span class="icon">📊</span> Dashboard</a>
-  <a href="admin-elections.html" class="sidebar-link"><span class="icon">🗳️</span> Elections</a>
-  <a href="admin-voters.html" class="sidebar-link"><span class="icon">👥</span> Voters</a>
-  <a href="admin-candidates.html" class="sidebar-link"><span class="icon">🏅</span> Candidates</a>
+  <a href="admin-dashboard.html" class="sidebar-link"><span class="icon"></span> Dashboard</a>
+  <a href="admin-elections.html" class="sidebar-link"><span class="icon"></span> Elections</a>
+  <a href="admin-voters.html" class="sidebar-link"><span class="icon"></span> Voters</a>
+  <a href="admin-candidates.html" class="sidebar-link"><span class="icon"></span> Candidates</a>
   <div class="sidebar-section" style="margin-top:8px;">Reports</div>
-  <a href="results.html" class="sidebar-link"><span class="icon">📈</span> Results</a>
-  <a href="admin-reports.html" class="sidebar-link active"><span class="icon">📋</span> Reports</a>
+  <a href="results.html" class="sidebar-link"><span class="icon"></span> Results</a>
+  <a href="admin-reports.html" class="sidebar-link active"><span class="icon"></span> Reports</a>
   <div class="sidebar-footer">
     <div style="font-size:0.82rem;color:var(--muted);padding:0 12px 10px;">Admin User</div>
-    <a href="login.html" class="sidebar-link"><span class="icon">🚪</span> Sign out</a>
+    <a href="login.html" class="sidebar-link"><span class="icon"></span> Sign out</a>
   </div>
 </aside>
 
@@ -88,7 +88,7 @@
   <div class="mb-4">
 
     <div class="report-card">
-      <div class="report-icon">📊</div>
+      <div class="report-icon"></div>
       <div class="report-info">
         <div class="report-title">Election Summary Report</div>
         <div class="report-desc">Total votes, turnout rate, and winner for each election</div>
@@ -100,43 +100,43 @@
           <option value="sports">Sports Captain 2024</option>
           <option value="dept">Departmental Head</option>
         </select>
-        <button class="btn btn-primary btn-sm" onclick="exportElectionSummary()">📥 Export PDF</button>
+        <button class="btn btn-primary btn-sm" onclick="exportElectionSummary()">Export PDF</button>
       </div>
     </div>
 
     <div class="report-card">
-      <div class="report-icon">👥</div>
+      <div class="report-icon"></div>
       <div class="report-info">
         <div class="report-title">Voter Turnout Report</div>
         <div class="report-desc">Breakdown of voter participation by election and date</div>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button class="btn btn-secondary btn-sm" onclick="exportCSV('turnout')">📥 Export CSV</button>
-        <button class="btn btn-primary btn-sm" onclick="exportVoterTurnout()">📥 Export PDF</button>
+        <button class="btn btn-secondary btn-sm" onclick="exportCSV('turnout')">Export CSV</button>
+        <button class="btn btn-primary btn-sm" onclick="exportVoterTurnout()">Export PDF</button>
       </div>
     </div>
 
     <div class="report-card">
-      <div class="report-icon">🏅</div>
+      <div class="report-icon"></div>
       <div class="report-info">
         <div class="report-title">Candidate Performance Report</div>
         <div class="report-desc">Votes received per candidate across all elections</div>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button class="btn btn-secondary btn-sm" onclick="exportCSV('candidates')">📥 Export CSV</button>
-        <button class="btn btn-primary btn-sm" onclick="exportCandidateReport()">📥 Export PDF</button>
+        <button class="btn btn-secondary btn-sm" onclick="exportCSV('candidates')">Export CSV</button>
+        <button class="btn btn-primary btn-sm" onclick="exportCandidateReport()">Export PDF</button>
       </div>
     </div>
 
     <div class="report-card">
-      <div class="report-icon">🔒</div>
+      <div class="report-icon"></div>
       <div class="report-info">
         <div class="report-title">Audit Log Report</div>
         <div class="report-desc">System activity log — logins, votes, admin actions</div>
       </div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
         <input type="date" id="auditDate" style="width:auto;font-size:0.82rem;" />
-        <button class="btn btn-primary btn-sm" onclick="exportAuditLog()">📥 Export PDF</button>
+        <button class="btn btn-primary btn-sm" onclick="exportAuditLog()">Export PDF</button>
       </div>
     </div>
 
@@ -180,7 +180,7 @@
           <div class="text-muted text-sm">Closed ${new Date(e.endDate).toLocaleDateString()} · ${e.voteCount} votes</div>
         </div>
         <div class="flex items-center gap-3">
-          <span class="badge badge-active">✔ Closed</span>
+          <span class="badge badge-active">Closed</span>
           <a href="results.html?electionId=${e.electionId}" class="btn btn-secondary btn-sm">View Results</a>
         </div>
       </div>`).join('');

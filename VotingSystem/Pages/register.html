@@ -27,7 +27,7 @@
 <body>
 <div class="wrap">
   <div class="logo-block">
-    <div class="logo-icon">🗳️</div>
+    <div class="logo-icon"></div>
     <h1 style="font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:800;">VoteMS</h1>
     <p style="color:var(--muted);font-size:0.9rem;margin-top:4px;" id="roleSubtitle">Create your voter account</p>
   </div>
@@ -36,12 +36,11 @@
     <h2 style="margin-bottom:4px;">Create account</h2>
     <p class="text-muted text-sm mb-3">Choose your role to get started</p>
 
-    <!-- Role selector -->
     <div class="form-group">
       <label>Register as</label>
       <div style="display:flex;gap:8px;">
-        <button type="button" class="role-btn active" data-role="voter" onclick="setRole('voter')">🗳️ Voter</button>
-        <button type="button" class="role-btn" data-role="candidate" onclick="setRole('candidate')">🏅 Candidate</button>
+        <button type="button" class="role-btn active" data-role="voter" onclick="setRole('voter')">Voter</button>
+        <button type="button" class="role-btn" data-role="candidate" onclick="setRole('candidate')">Candidate</button>
       </div>
     </div>
 
@@ -89,7 +88,7 @@
     <!-- Candidate-only fields -->
     <div id="candidateFields" style="display:none;">
       <hr class="divider"/>
-      <p style="font-size:0.82rem;font-weight:600;color:var(--accent);margin-bottom:14px;">🏅 Candidate Details</p>
+      <p style="font-size:0.82rem;font-weight:600;color:var(--accent);margin-bottom:14px;">Candidate Details</p>
       <div class="form-group">
         <label>Party / Affiliation</label>
         <input type="text" id="party" placeholder="e.g. Progressive Students Alliance" />
