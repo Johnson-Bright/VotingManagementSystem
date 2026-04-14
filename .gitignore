@@ -14,3 +14,11 @@ obj/
 # OS
 .DS_Store
 Thumbs.db
+
+# Documents
+*.docx
+*.doc
+*.pdf
+docx_extract/
+revised_extract/
+docx_paragraphs.txt
