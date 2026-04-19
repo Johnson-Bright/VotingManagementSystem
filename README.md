@@ -48,20 +48,21 @@ Keep this window open.
 Open a **second CMD window** in the project root and run:
 
 ```cmd
-cd VotingSystem
-python -m http.server 5500
+npx serve VotingSystem
 ```
 
 Then open your browser at:
 ```
-http://localhost:5500/Pages/login.html
+http://localhost:3000
 ```
 
-> If you don't have Python, use Node instead:
+It will automatically redirect to the login page.
+
+> If you prefer Python:
 > ```cmd
-> npx serve VotingSystem
+> cd VotingSystem
+> python -m http.server 3000
 > ```
-> Then navigate to `Pages/login.html` from the URL it gives you.
 
 ---
 
