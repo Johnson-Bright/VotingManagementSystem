@@ -4,60 +4,64 @@
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download)
 - SQL Server (local instance)
+- Python 3 or Node.js (to serve the frontend)
 - A browser (Chrome recommended)
+
+---
+
+## Database Setup
+
+Open CMD in the project root and run:
+
+```cmd
+sqlcmd -S localhost -i VotingMIS\VotingMIS\database.sql
+```
+
+Then seed the sample data:
+
+```cmd
+sqlcmd -S localhost -d VotingMis -i VotingMIS\VotingMIS\seed.sql
+```
+
+> Or open SSMS, connect to `localhost`, and run both SQL files manually.
 
 ---
 
 ## How to Run
 
-### 1. Set up the database
+### Step 1 — Start the backend API
 
-Open SQL Server Management Studio (SSMS), connect to `localhost`, and run the script:
+Open CMD in the project root and run:
 
-```
-VotingMIS/VotingMIS/database.sql
-```
-
-Then run the seed data script to populate all tables:
-
-```
-VotingMIS/VotingMIS/seed.sql
-```
-
-### 2. Start the backend API
-
-Open a terminal in the project root and run:
-
-```bash
-dotnet run --project VotingMIS/VotingMIS/VotingMIS.csproj
+```cmd
+dotnet run --project VotingMIS\VotingMIS\VotingMIS.csproj
 ```
 
 Wait until you see:
 ```
 Now listening on: http://localhost:5099
 ```
+Keep this window open.
 
-### 3. Run the frontend
+### Step 2 — Serve the frontend
 
-The frontend is plain HTML and must be served over HTTP (not opened as a file) to avoid browser security restrictions.
+Open a **second CMD window** in the project root and run:
 
-**Option A — VS Code Live Server (easiest)**
-1. Install the [Live Server](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer) extension in VS Code
-2. Right-click `VotingSystem/Pages/login.html`
-3. Click **Open with Live Server**
-4. Browser opens at `http://127.0.0.1:5500/VotingSystem/Pages/login.html`
-
-**Option B — Python**
-```bash
+```cmd
+cd VotingSystem
 python -m http.server 5500
 ```
-Then visit: `http://localhost:5500/VotingSystem/Pages/login.html`
 
-**Option C — Node**
-```bash
-npx serve .
+Then open your browser at:
 ```
-Then navigate to `VotingSystem/Pages/login.html` from the URL it provides.
+http://localhost:5500/Pages/login.html
+```
+
+> If you don't have Python, use Node instead:
+> ```cmd
+> npx serve VotingSystem
+> ```
+> Then navigate to `Pages/login.html` from the URL it gives you.
 
 ---
 
