@@ -85,10 +85,16 @@
 <div class="modal-overlay" id="addModal">
   <div class="modal">
     <h2>Add Candidate</h2>
-    <p class="text-muted text-sm mb-3">Assign an existing user as a candidate</p>
-    <div class="form-group"><label>User ID</label><input type="number" id="addUserId" placeholder="User ID"/></div>
-    <div class="form-group"><label>Election</label><select id="addElectionId"></select></div>
-    <div class="form-group"><label>Party / Affiliation</label><input type="text" id="addParty" placeholder="Party name"/></div>
+    <p class="text-muted text-sm mb-3">Assign a user as a candidate in an election</p>
+    <div class="form-group">
+      <label>Election</label>
+      <select id="addElectionId" onchange="loadEligibleUsers()"></select>
+    </div>
+    <div class="form-group">
+      <label>User</label>
+      <select id="addUserId"><option value="">Select an election first...</option></select>
+    </div>
+    <div class="form-group"><label>Party / Affiliation</label><input type="text" id="addParty" placeholder="Party name (optional)"/></div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="document.getElementById('addModal').classList.remove('open')">Cancel</button>
       <button class="btn btn-primary" onclick="addCandidate()">Add Candidate</button>
@@ -101,6 +107,9 @@
   const token = localStorage.getItem('token');
   if (!token) location.href = 'login.html';
   function authH() { return { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }; }
+
+  // Show admin name in sidebar
+  document.querySelector('.sidebar-footer div').textContent = localStorage.getItem('fullName') || 'Admin';
 
   let allCandidates = [];
 
@@ -116,15 +125,33 @@
     document.getElementById('statTotal').textContent  = allCandidates.length;
     document.getElementById('statActive').textContent = [...new Set(allCandidates.filter(c => c.electionStatus === 'Active').map(c => c.electionId))].length;
 
-    // Populate election filter & add modal select
+    // Populate election filter
     const filter = document.getElementById('electionFilter');
+    filter.innerHTML = '<option value="">All Elections</option>';
+    // Populate add modal election dropdown
     const addSel = document.getElementById('addElectionId');
+    addSel.innerHTML = '<option value="">Select election...</option>';
     elections.forEach(e => {
       filter.innerHTML += `<option value="${e.electionId}">${e.electionName}</option>`;
       addSel.innerHTML  += `<option value="${e.electionId}">${e.electionName}</option>`;
     });
 
     renderCandidates(allCandidates);
+  }
+
+  async function loadEligibleUsers() {
+    const electionId = document.getElementById('addElectionId').value;
+    const userSel = document.getElementById('addUserId');
+    userSel.innerHTML = '<option value="">Loading...</option>';
+    if (!electionId) { userSel.innerHTML = '<option value="">Select an election first...</option>'; return; }
+
+    const res = await fetch(`${API}/api/admin/eligible-candidates/${electionId}`, { headers: authH() });
+    const users = await res.json();
+    userSel.innerHTML = '<option value="">Select a user...</option>';
+    users.forEach(u => {
+      userSel.innerHTML += `<option value="${u.userId}">${u.fullName} (${u.email}) — ${u.role}</option>`;
+    });
+    if (!users.length) userSel.innerHTML = '<option value="">No eligible users found</option>';
   }
 
   function renderCandidates(list) {
@@ -159,7 +186,7 @@
     const userId     = parseInt(document.getElementById('addUserId').value);
     const electionId = parseInt(document.getElementById('addElectionId').value);
     const party      = document.getElementById('addParty').value.trim();
-    if (!userId || !electionId) { alert('Please fill all fields'); return; }
+    if (!userId || !electionId) { alert('Please select an election and a user'); return; }
     const res = await fetch(`${API}/api/admin/add-candidate`, {
       method: 'POST', headers: authH(),
       body: JSON.stringify({ userId, electionId, party })

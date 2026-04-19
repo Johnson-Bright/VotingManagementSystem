@@ -182,12 +182,30 @@ namespace VotingMIS.Controllers
             return Ok(results);
         }
 
-        // ── All users ────────────────────────────────────────────────────
+        // ── All users (for dropdowns) ────────────────────────────────────
         [HttpGet("all-users")]
         public IActionResult GetAllUsers()
         {
             var users = _context.Users
                 .Select(u => new { u.UserId, u.FullName, u.Email, u.Role, u.Status })
+                .OrderBy(u => u.FullName)
+                .ToList();
+            return Ok(users);
+        }
+
+        // ── Users eligible to be candidates (not already in that election) ──
+        [HttpGet("eligible-candidates/{electionId}")]
+        public IActionResult GetEligibleUsers(int electionId)
+        {
+            var alreadyIn = _context.Candidates
+                .Where(c => c.ElectionId == electionId)
+                .Select(c => c.UserId)
+                .ToHashSet();
+
+            var users = _context.Users
+                .Where(u => u.Status == "Active" && !alreadyIn.Contains(u.UserId))
+                .Select(u => new { u.UserId, u.FullName, u.Email, u.Role })
+                .OrderBy(u => u.FullName)
                 .ToList();
             return Ok(users);
         }

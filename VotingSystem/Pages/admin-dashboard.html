@@ -41,18 +41,18 @@
   <div class="sidebar-logo"><div class="dot"></div> VoteMS <span class="badge badge-admin" style="margin-left:auto;font-size:0.65rem;">Admin</span></div>
 
   <div class="sidebar-section">Overview</div>
-  <a href="admin-dashboard.html" class="sidebar-link active"><span class="icon"></span> Dashboard</a>
-  <a href="admin-elections.html" class="sidebar-link"><span class="icon"></span> Elections</a>
-  <a href="admin-voters.html" class="sidebar-link"><span class="icon"></span> Voters</a>
-  <a href="admin-candidates.html" class="sidebar-link"><span class="icon"></span> Candidates</a>
+  <a href="admin-dashboard.html" class="sidebar-link active"> Dashboard</a>
+  <a href="admin-elections.html" class="sidebar-link"> Elections</a>
+  <a href="admin-voters.html" class="sidebar-link"> Voters</a>
+  <a href="admin-candidates.html" class="sidebar-link"> Candidates</a>
 
   <div class="sidebar-section" style="margin-top:8px;">Reports</div>
-  <a href="results.html" class="sidebar-link"><span class="icon"></span> Results</a>
-  <a href="admin-reports.html" class="sidebar-link"><span class="icon"></span> Reports</a>
+  <a href="results.html" class="sidebar-link"> Results</a>
+  <a href="admin-reports.html" class="sidebar-link"> Reports</a>
 
   <div class="sidebar-footer">
-    <div style="font-size:0.82rem;color:var(--muted);padding:0 12px 10px;">Admin User</div>
-    <a href="login.html" class="sidebar-link"><span class="icon"></span> Sign out</a>
+    <div style="font-size:0.82rem;color:var(--muted);padding:0 12px 10px;" id="sidebarName">Admin</div>
+    <a href="login.html" class="sidebar-link" onclick="localStorage.clear()"> Sign out</a>
   </div>
 </aside>
 
@@ -60,7 +60,7 @@
 <main class="main">
   <div class="flex justify-between items-center mb-4">
     <div>
-      <h1>Dashboard</h1>
+      <h1 id="welcomeTitle">Dashboard</h1>
       <p class="subtitle">Overview of all elections and system activity</p>
     </div>
     <a href="admin-elections.html" class="btn btn-primary">+ New Election</a>
@@ -90,9 +90,9 @@
     </div>
   </div>
 
-  <!-- Active elections table -->
+  <!-- Active elections — 2 rows -->
   <div class="section-header">
-    <h2 style="margin:0;">Active Elections</h2>
+    <h2 style="margin:0;">Recent Elections</h2>
     <a href="admin-elections.html" class="btn btn-secondary btn-sm">View all elections</a>
   </div>
   <div class="table-wrap mb-4">
@@ -104,21 +104,21 @@
     </table>
   </div>
 
-  <!-- Recent voters table -->
+  <!-- Recent voters — 2 rows -->
   <div class="section-header">
-    <h2 style="margin:0;">Recent Voter Registrations</h2>
+    <h2 style="margin:0;">Recent Voters</h2>
     <a href="admin-voters.html" class="btn btn-secondary btn-sm">View all voters</a>
   </div>
   <div class="table-wrap mb-4">
     <table>
       <thead>
-        <tr><th>Name</th><th>Email</th><th>Votes Cast</th><th>Status</th></tr>
+        <tr><th>Name</th><th>Email</th><th>National ID</th><th>Votes Cast</th><th>Status</th></tr>
       </thead>
-      <tbody id="votersBody"><tr><td colspan="4" class="text-muted">Loading...</td></tr></tbody>
+      <tbody id="votersBody"><tr><td colspan="5" class="text-muted">Loading...</td></tr></tbody>
     </table>
   </div>
 
-  <!-- Recent candidates table -->
+  <!-- Recent candidates — 2 rows -->
   <div class="section-header">
     <h2 style="margin:0;">Recent Candidates</h2>
     <a href="admin-candidates.html" class="btn btn-secondary btn-sm">View all candidates</a>
@@ -126,9 +126,9 @@
   <div class="table-wrap">
     <table>
       <thead>
-        <tr><th>Candidate</th><th>Party</th><th>Election</th><th>Votes</th><th>Status</th></tr>
+        <tr><th>Candidate</th><th>Email</th><th>Party</th><th>Election</th><th>Votes</th><th>Status</th></tr>
       </thead>
-      <tbody id="candidatesBody"><tr><td colspan="5" class="text-muted">Loading...</td></tr></tbody>
+      <tbody id="candidatesBody"><tr><td colspan="6" class="text-muted">Loading...</td></tr></tbody>
     </table>
   </div>
 </main>
@@ -137,6 +137,11 @@
   const API = 'http://localhost:5099';
   const token = localStorage.getItem('token');
   if (!token) location.href = 'login.html';
+
+  // Show admin name
+  const adminName = localStorage.getItem('fullName') || 'Admin';
+  document.getElementById('sidebarName').textContent = adminName;
+  document.getElementById('welcomeTitle').textContent = `Welcome, ${adminName}`;
 
   function authH() { return { 'Authorization': 'Bearer ' + token }; }
 
@@ -155,64 +160,79 @@
     const voters     = await votersRes.json();
     const candidates = await candidatesRes.json();
 
+    // Stats
     document.getElementById('statTotal').textContent      = stats.totalElections;
     document.getElementById('statSub').textContent        = `${stats.activeElections} active, ${stats.closedElections} closed`;
     document.getElementById('statVoters').textContent     = stats.totalVoters;
     document.getElementById('statToday').textContent      = stats.todayVotes;
     document.getElementById('statCandidates').textContent = stats.totalCandidates;
 
-    // Elections — show max 3 active
+    // Elections — most recent 2
     const eb = document.getElementById('electionsBody');
     eb.innerHTML = '';
-    const activeElections = elections.filter(e => e.status === 'Active').slice(0, 3);
-    if (!activeElections.length) {
-      eb.innerHTML = '<tr><td colspan="6" class="text-muted">No active elections.</td></tr>';
+    const recentElections = elections.slice(0, 2);
+    if (!recentElections.length) {
+      eb.innerHTML = '<tr><td colspan="6" class="text-muted">No elections yet.</td></tr>';
     } else {
-      activeElections.forEach(e => {
+      recentElections.forEach(e => {
+        const badgeClass = e.status === 'Active' ? 'badge-active' : e.status === 'Closed' ? 'badge-closed' : 'badge-draft';
+        const action = e.status === 'Active'
+          ? `<button class="btn btn-danger btn-sm" onclick="closeElection(${e.electionId})">Close</button>`
+          : `<a href="results.html?electionId=${e.electionId}" class="btn btn-success btn-sm">Results</a>`;
         eb.innerHTML += `
           <tr>
             <td><strong>${e.electionName}</strong></td>
-            <td><span class="badge badge-active">Active</span></td>
+            <td><span class="badge ${badgeClass}">${e.status}</span></td>
             <td>${e.candidateCount}</td>
             <td>${e.voteCount}</td>
-            <td>${new Date(e.endDate).toLocaleDateString()}</td>
-            <td><button class="btn btn-danger btn-sm" onclick="closeElection(${e.electionId}, this)">Close</button></td>
+            <td class="text-muted">${new Date(e.endDate).toLocaleDateString()}</td>
+            <td>${action}</td>
           </tr>`;
       });
     }
 
-    // Voters — show max 3
+    // Voters — most recent 2
     const vb = document.getElementById('votersBody');
     vb.innerHTML = '';
-    voters.slice(0, 3).forEach(v => {
-      vb.innerHTML += `
-        <tr>
-          <td><strong>${v.fullName}</strong></td>
-          <td class="text-muted">${v.email}</td>
-          <td>${v.votesCount}</td>
-          <td><span class="badge ${v.status === 'Active' ? 'badge-voter' : 'badge-draft'}">${v.status}</span></td>
-        </tr>`;
-    });
-    if (!voters.length) vb.innerHTML = '<tr><td colspan="4" class="text-muted">No voters found.</td></tr>';
+    const recentVoters = voters.slice(0, 2);
+    if (!recentVoters.length) {
+      vb.innerHTML = '<tr><td colspan="5" class="text-muted">No voters yet.</td></tr>';
+    } else {
+      recentVoters.forEach(v => {
+        vb.innerHTML += `
+          <tr>
+            <td><strong>${v.fullName}</strong></td>
+            <td class="text-muted">${v.email}</td>
+            <td class="text-muted" style="font-size:0.78rem;">${v.nationalId || '—'}</td>
+            <td>${v.votesCount}</td>
+            <td><span class="badge ${v.status === 'Active' ? 'badge-voter' : 'badge-draft'}">${v.status}</span></td>
+          </tr>`;
+      });
+    }
 
-    // Candidates — show max 3
+    // Candidates — most recent 2
     const cb = document.getElementById('candidatesBody');
     cb.innerHTML = '';
-    candidates.slice(0, 3).forEach(c => {
-      const badgeClass = c.electionStatus === 'Active' ? 'badge-active' : 'badge-closed';
-      cb.innerHTML += `
-        <tr>
-          <td><strong>${c.user.fullName}</strong></td>
-          <td class="text-muted">${c.party || 'Independent'}</td>
-          <td class="text-muted">${c.electionName}</td>
-          <td style="color:var(--green);font-weight:600;">${c.voteCount}</td>
-          <td><span class="badge ${badgeClass}">${c.electionStatus}</span></td>
-        </tr>`;
-    });
-    if (!candidates.length) cb.innerHTML = '<tr><td colspan="5" class="text-muted">No candidates found.</td></tr>';
+    const recentCandidates = candidates.slice(0, 2);
+    if (!recentCandidates.length) {
+      cb.innerHTML = '<tr><td colspan="6" class="text-muted">No candidates yet.</td></tr>';
+    } else {
+      recentCandidates.forEach(c => {
+        const badgeClass = c.electionStatus === 'Active' ? 'badge-active' : 'badge-closed';
+        cb.innerHTML += `
+          <tr>
+            <td><strong>${c.user.fullName}</strong></td>
+            <td class="text-muted">${c.user.email}</td>
+            <td class="text-muted">${c.party || 'Independent'}</td>
+            <td class="text-muted">${c.electionName}</td>
+            <td style="color:var(--green);font-weight:600;">${c.voteCount}</td>
+            <td><span class="badge ${badgeClass}">${c.electionStatus}</span></td>
+          </tr>`;
+      });
+    }
   }
 
-  async function closeElection(id, btn) {
+  async function closeElection(id) {
     if (!confirm('Close this election?')) return;
     await fetch(`${API}/api/admin/election/${id}/close`, { method: 'PUT', headers: authH() });
     loadDashboard();
