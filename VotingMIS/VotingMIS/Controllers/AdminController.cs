@@ -166,7 +166,29 @@ namespace VotingMIS.Controllers
             return Ok(new { message = "Candidate removed" });
         }
 
-        // ── Results ──────────────────────────────────────────────────────
+        // ── Results (all elections, for admin) ──────────────────────────
+        [HttpGet("results")]
+        public IActionResult GetAllResults()
+        {
+            var elections = _context.Elections
+                .Select(e => new {
+                    e.ElectionId, e.ElectionName, e.StartDate, e.EndDate, e.Status,
+                    TotalVotes = e.Votes.Count(),
+                    Results = e.Candidates
+                        .Select(c => new {
+                            c.CandidateId, c.Party,
+                            CandidateName = c.User.FullName,
+                            TotalVotes    = e.Votes.Count(v => v.CandidateId == c.CandidateId)
+                        })
+                        .OrderByDescending(r => r.TotalVotes)
+                        .ToList()
+                })
+                .OrderByDescending(e => e.ElectionId)
+                .ToList();
+            return Ok(elections);
+        }
+
+        // ── Results per election ──────────────────────────────────────────
         [HttpGet("results/{electionId}")]
         public IActionResult GetResults(int electionId)
         {

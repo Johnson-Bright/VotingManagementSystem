@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Election Results — VoteMS Admin</title>
+  <link rel="stylesheet" href="../styles.css"/>
+  <style>
+    .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 230px; background: var(--bg2); border-right: 1px solid var(--border); padding: 24px 16px; display: flex; flex-direction: column; gap: 4px; z-index: 200; }
+    .sidebar-logo { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 800; display: flex; align-items: center; gap: 8px; padding: 8px 12px; margin-bottom: 20px; }
+    .sidebar-logo .dot { width: 10px; height: 10px; background: var(--accent); border-radius: 50%; }
+    .sidebar-section { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; padding: 8px 12px 4px; }
+    .sidebar-link { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; text-decoration: none; font-size: 0.88rem; font-weight: 500; color: var(--muted); transition: all 0.15s; }
+    .sidebar-link:hover { background: var(--bg3); color: var(--text); }
+    .sidebar-link.active { background: var(--bg3); color: var(--text); }
+    .sidebar-footer { margin-top: auto; padding-top: 16px; border-top: 1px solid var(--border); }
+    .main { margin-left: 230px; padding: 36px 40px; }
+
+    .election-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 28px; }
+    .election-tab {
+      padding: 8px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 500;
+      cursor: pointer; border: 1px solid var(--border); background: var(--card);
+      color: var(--muted); transition: all 0.2s;
+    }
+    .election-tab.active { background: var(--accent); border-color: var(--accent); color: white; }
+    .election-tab:hover:not(.active) { border-color: var(--accent); color: var(--text); }
+    .election-tab.status-active { border-left: 3px solid var(--green); }
+    .election-tab.status-closed { border-left: 3px solid var(--muted); }
+    .election-tab.status-upcoming { border-left: 3px solid var(--amber); }
+
+    .result-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 20px; margin-bottom: 12px;
+      display: flex; align-items: center; gap: 16px;
+    }
+    .result-card.winner { border-color: var(--green); background: #ECFDF5; }
+    .rank { font-family: 'Syne', sans-serif; font-size: 1.3rem; font-weight: 800; min-width: 32px; text-align: center; color: var(--muted); }
+    .rank.first { color: var(--amber); }
+    .result-avatar { width: 44px; height: 44px; border-radius: 10px; background: linear-gradient(135deg, var(--accent2), var(--accent)); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; font-weight: 700; color: white; flex-shrink: 0; }
+    .result-info { flex: 1; min-width: 0; }
+    .result-name { font-family: 'Syne', sans-serif; font-size: 0.95rem; font-weight: 700; margin-bottom: 2px; }
+    .result-party { font-size: 0.78rem; color: var(--muted); margin-bottom: 6px; }
+    .result-votes { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 800; min-width: 70px; text-align: right; }
+    .result-pct { font-size: 0.75rem; color: var(--muted); text-align: right; }
+
+    .no-candidates { background: var(--bg3); border: 1px dashed var(--border); border-radius: var(--radius-lg); padding: 32px; text-align: center; color: var(--muted); }
+    @media (max-width: 768px) { .sidebar { display: none; } .main { margin-left: 0; padding: 20px 16px; } }
+  </style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-logo"><div class="dot"></div> VoteMS <span class="badge badge-admin" style="margin-left:auto;font-size:0.65rem;">Admin</span></div>
+  <div class="sidebar-section">Overview</div>
+  <a href="admin-dashboard.html" class="sidebar-link"> Dashboard</a>
+  <a href="admin-elections.html" class="sidebar-link"> Elections</a>
+  <a href="admin-voters.html" class="sidebar-link"> Voters</a>
+  <a href="admin-candidates.html" class="sidebar-link"> Candidates</a>
+  <div class="sidebar-section" style="margin-top:8px;">Reports</div>
+  <a href="admin-results.html" class="sidebar-link active"> Results</a>
+  <a href="admin-reports.html" class="sidebar-link"> Reports</a>
+  <div class="sidebar-footer">
+    <div style="font-size:0.82rem;color:var(--muted);padding:0 12px 10px;" id="sidebarName">Admin</div>
+    <a href="login.html" class="sidebar-link" onclick="localStorage.clear()"> Sign out</a>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="flex justify-between items-center mb-4">
+    <div>
+      <h1>Election Results</h1>
+      <p class="subtitle">Live and final results for all elections</p>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <select id="statusFilter" style="width:auto;" onchange="filterByStatus()">
+        <option value="">All Elections</option>
+        <option value="Active">Active</option>
+        <option value="Upcoming">Upcoming</option>
+        <option value="Closed">Closed</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Summary stats -->
+  <div class="stats-grid mb-4">
+    <div class="stat-card">
+      <div class="stat-label">Total Elections</div>
+      <div class="stat-value" style="color:var(--accent);" id="statTotal">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Active</div>
+      <div class="stat-value" style="color:var(--green);" id="statActive">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Closed</div>
+      <div class="stat-value" style="color:var(--muted);" id="statClosed">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total Votes Cast</div>
+      <div class="stat-value" style="color:var(--amber);" id="statVotes">—</div>
+    </div>
+  </div>
+
+  <!-- Election tabs -->
+  <div class="election-tabs" id="electionTabs">
+    <p class="text-muted text-sm">Loading elections...</p>
+  </div>
+
+  <!-- Results content -->
+  <div id="resultsContent">
+    <p class="text-muted text-sm">Select an election above to view results.</p>
+  </div>
+</main>
+
+<script>
+  const API = 'http://localhost:5099';
+  const token = localStorage.getItem('token');
+  if (!token) location.href = 'login.html';
+
+  document.getElementById('sidebarName').textContent = localStorage.getItem('fullName') || 'Admin';
+
+  function authH() { return { 'Authorization': 'Bearer ' + token }; }
+
+  let allElections = [];
+  let currentElection = null;
+
+  async function loadResults() {
+    const res = await fetch(`${API}/api/admin/results`, { headers: authH() });
+    if (res.status === 401) { localStorage.clear(); location.href = 'login.html'; return; }
+    allElections = await res.json();
+
+    // Stats
+    document.getElementById('statTotal').textContent  = allElections.length;
+    document.getElementById('statActive').textContent = allElections.filter(e => e.status === 'Active').length;
+    document.getElementById('statClosed').textContent = allElections.filter(e => e.status === 'Closed').length;
+    document.getElementById('statVotes').textContent  = allElections.reduce((s, e) => s + e.totalVotes, 0);
+
+    // Check URL param
+    const urlId = parseInt(new URLSearchParams(window.location.search).get('electionId'));
+    const first = allElections.find(e => e.electionId === urlId) || allElections[0];
+
+    renderTabs(allElections, first);
+    if (first) renderResults(first);
+  }
+
+  function renderTabs(list, selected) {
+    const tabs = document.getElementById('electionTabs');
+    tabs.innerHTML = '';
+    if (!list.length) {
+      tabs.innerHTML = '<p class="text-muted text-sm">No elections found.</p>';
+      return;
+    }
+    list.forEach(e => {
+      const tab = document.createElement('div');
+      const statusClass = e.status === 'Active' ? 'status-active' : e.status === 'Closed' ? 'status-closed' : 'status-upcoming';
+      tab.className = `election-tab ${statusClass}` + (selected && e.electionId === selected.electionId ? ' active' : '');
+      tab.innerHTML = `${e.electionName} <span class="badge ${e.status === 'Active' ? 'badge-active' : e.status === 'Closed' ? 'badge-closed' : 'badge-draft'}" style="margin-left:6px;font-size:0.65rem;">${e.status}</span>`;
+      tab.onclick = () => {
+        document.querySelectorAll('.election-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        currentElection = e;
+        renderResults(e);
+      };
+      tabs.appendChild(tab);
+    });
+  }
+
+  function filterByStatus() {
+    const status = document.getElementById('statusFilter').value;
+    const filtered = status ? allElections.filter(e => e.status === status) : allElections;
+    const first = filtered[0] || null;
+    renderTabs(filtered, first);
+    if (first) renderResults(first);
+    else document.getElementById('resultsContent').innerHTML = '<p class="text-muted">No elections match this filter.</p>';
+  }
+
+  function renderResults(election) {
+    currentElection = election;
+    const total = election.totalVotes || 0;
+    const content = document.getElementById('resultsContent');
+
+    const statusBadge = election.status === 'Active'
+      ? `<span class="badge badge-active">Live — votes updating in real time</span>`
+      : election.status === 'Closed'
+      ? `<span class="badge badge-closed">Closed — ${new Date(election.endDate).toLocaleDateString()}</span>`
+      : `<span class="badge badge-draft">Upcoming</span>`;
+
+    let rows = '';
+    if (!election.results || !election.results.length) {
+      rows = `<div class="no-candidates">No candidates registered for this election yet.</div>`;
+    } else {
+      election.results.forEach((r, i) => {
+        const pct = total > 0 ? ((r.totalVotes / total) * 100).toFixed(1) : 0;
+        const isWinner = i === 0 && r.totalVotes > 0;
+        const colors = ['green', '', 'purple', 'amber'];
+        rows += `
+          <div class="result-card ${isWinner ? 'winner' : ''}">
+            <div class="rank ${isWinner ? 'first' : ''}">${i + 1}</div>
+            <div class="result-avatar">${r.candidateName.charAt(0).toUpperCase()}</div>
+            <div class="result-info">
+              <div class="result-name">${r.candidateName}${isWinner && election.status === 'Closed' ? ' <span style="color:var(--amber);">Winner</span>' : ''}</div>
+              <div class="result-party">${r.party || 'Independent'}</div>
+              <div class="progress-wrap">
+                <div class="progress-bar"><div class="progress-fill ${colors[i] || ''}" style="width:${pct}%"></div></div>
+              </div>
+            </div>
+            <div>
+              <div class="result-votes" style="${isWinner ? 'color:var(--green)' : ''}">${r.totalVotes}</div>
+              <div class="result-pct">${pct}%</div>
+            </div>
+          </div>`;
+      });
+    }
+
+    content.innerHTML = `
+      <div class="card mb-4">
+        <div class="flex justify-between items-center flex-wrap gap-3">
+          <div>
+            <h2 style="margin-bottom:6px;">${election.electionName}</h2>
+            ${statusBadge}
+          </div>
+          <div class="stats-grid" style="margin:0;gap:10px;">
+            <div class="stat-card" style="padding:12px 16px;">
+              <div class="stat-label">Total Votes</div>
+              <div class="stat-value" style="font-size:1.4rem;color:var(--accent);">${total}</div>
+            </div>
+            <div class="stat-card" style="padding:12px 16px;">
+              <div class="stat-label">Candidates</div>
+              <div class="stat-value" style="font-size:1.4rem;">${election.results ? election.results.length : 0}</div>
+            </div>
+            <div class="stat-card" style="padding:12px 16px;">
+              <div class="stat-label">Closes</div>
+              <div class="stat-value" style="font-size:1rem;padding-top:4px;">${new Date(election.endDate).toLocaleDateString()}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      ${rows}
+      ${election.status === 'Active' ? `
+        <div class="alert alert-info mt-3">
+          This election is still active. Results shown are live and will change as more votes are cast.
+          <button class="btn btn-secondary btn-sm" style="margin-left:12px;" onclick="loadResults()">Refresh</button>
+        </div>` : ''}`;
+  }
+
+  loadResults();
+</script>
+</body>
+</html>
