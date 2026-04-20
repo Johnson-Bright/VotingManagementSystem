@@ -14,36 +14,55 @@
     .sidebar-link:hover { background: var(--bg3); color: var(--text); }
     .sidebar-link.active { background: var(--bg3); color: var(--text); }
     .sidebar-footer { margin-top: auto; padding-top: 16px; border-top: 1px solid var(--border); }
-    .main { margin-left: 230px; padding: 36px 40px; }
+    .main { margin-left: 230px; padding: 32px 40px; max-width: 1100px; }
 
-    .election-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 28px; }
-    .election-tab {
-      padding: 8px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 500;
-      cursor: pointer; border: 1px solid var(--border); background: var(--card);
-      color: var(--muted); transition: all 0.2s;
-    }
-    .election-tab.active { background: var(--accent); border-color: var(--accent); color: white; }
-    .election-tab:hover:not(.active) { border-color: var(--accent); color: var(--text); }
-    .election-tab.status-active { border-left: 3px solid var(--green); }
-    .election-tab.status-closed { border-left: 3px solid var(--muted); }
-    .election-tab.status-upcoming { border-left: 3px solid var(--amber); }
-
-    .result-card {
+    /* Compact summary bar */
+    .summary-bar {
+      display: flex; gap: 24px; align-items: center;
       background: var(--card); border: 1px solid var(--border);
-      border-radius: var(--radius-lg); padding: 20px; margin-bottom: 12px;
-      display: flex; align-items: center; gap: 16px;
+      border-radius: var(--radius); padding: 14px 20px;
+      margin-bottom: 24px; flex-wrap: wrap;
     }
-    .result-card.winner { border-color: var(--green); background: #ECFDF5; }
-    .rank { font-family: 'Syne', sans-serif; font-size: 1.3rem; font-weight: 800; min-width: 32px; text-align: center; color: var(--muted); }
-    .rank.first { color: var(--amber); }
-    .result-avatar { width: 44px; height: 44px; border-radius: 10px; background: linear-gradient(135deg, var(--accent2), var(--accent)); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; font-weight: 700; color: white; flex-shrink: 0; }
-    .result-info { flex: 1; min-width: 0; }
-    .result-name { font-family: 'Syne', sans-serif; font-size: 0.95rem; font-weight: 700; margin-bottom: 2px; }
-    .result-party { font-size: 0.78rem; color: var(--muted); margin-bottom: 6px; }
-    .result-votes { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 800; min-width: 70px; text-align: right; }
-    .result-pct { font-size: 0.75rem; color: var(--muted); text-align: right; }
+    .summary-item { text-align: center; }
+    .summary-value { font-family: 'Syne', sans-serif; font-size: 1.3rem; font-weight: 800; }
+    .summary-label { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
 
-    .no-candidates { background: var(--bg3); border: 1px dashed var(--border); border-radius: var(--radius-lg); padding: 32px; text-align: center; color: var(--muted); }
+    /* Selector row */
+    .selector-row {
+      display: flex; gap: 12px; align-items: center;
+      margin-bottom: 24px; flex-wrap: wrap;
+    }
+    .selector-row select { flex: 1; min-width: 260px; max-width: 480px; }
+
+    /* Result rows — compact table-like */
+    .result-row {
+      display: flex; align-items: center; gap: 14px;
+      padding: 12px 16px; border-bottom: 1px solid var(--border);
+      background: var(--card);
+    }
+    .result-row:first-child { border-radius: var(--radius) var(--radius) 0 0; }
+    .result-row:last-child { border-bottom: none; border-radius: 0 0 var(--radius) var(--radius); }
+    .result-row.winner { background: #ECFDF5; border-left: 3px solid var(--green); }
+    .result-wrap { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 20px; }
+
+    .rank { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 800; min-width: 24px; text-align: center; color: var(--muted); }
+    .rank.first { color: var(--amber); }
+    .avatar { width: 34px; height: 34px; border-radius: 8px; background: linear-gradient(135deg, var(--accent2), var(--accent)); display: flex; align-items: center; justify-content: center; font-size: 0.9rem; font-weight: 700; color: white; flex-shrink: 0; }
+    .cand-info { flex: 1; min-width: 0; }
+    .cand-name { font-weight: 600; font-size: 0.9rem; }
+    .cand-party { font-size: 0.75rem; color: var(--muted); }
+    .bar-wrap { flex: 2; min-width: 100px; }
+    .vote-count { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.95rem; min-width: 40px; text-align: right; }
+    .vote-pct { font-size: 0.75rem; color: var(--muted); min-width: 42px; text-align: right; }
+
+    /* Election info strip */
+    .election-info {
+      display: flex; gap: 20px; align-items: center; flex-wrap: wrap;
+      padding: 14px 0; margin-bottom: 16px; border-bottom: 1px solid var(--border);
+    }
+    .election-info h2 { margin: 0; font-size: 1.1rem; }
+
+    .no-data { padding: 32px; text-align: center; color: var(--muted); background: var(--bg3); border-radius: var(--radius); }
     @media (max-width: 768px) { .sidebar { display: none; } .main { margin-left: 0; padding: 20px 16px; } }
   </style>
 </head>
@@ -66,49 +85,53 @@
 </aside>
 
 <main class="main">
-  <div class="flex justify-between items-center mb-4">
+  <div class="flex justify-between items-center mb-3">
     <div>
       <h1>Election Results</h1>
-      <p class="subtitle">Live and final results for all elections</p>
-    </div>
-    <div style="display:flex;gap:8px;align-items:center;">
-      <select id="statusFilter" style="width:auto;" onchange="filterByStatus()">
-        <option value="">All Elections</option>
-        <option value="Active">Active</option>
-        <option value="Upcoming">Upcoming</option>
-        <option value="Closed">Closed</option>
-      </select>
+      <p class="subtitle">View live and final results for any election</p>
     </div>
   </div>
 
-  <!-- Summary stats -->
-  <div class="stats-grid mb-4">
-    <div class="stat-card">
-      <div class="stat-label">Total Elections</div>
-      <div class="stat-value" style="color:var(--accent);" id="statTotal">—</div>
+  <!-- Compact summary bar -->
+  <div class="summary-bar">
+    <div class="summary-item">
+      <div class="summary-value" style="color:var(--accent);" id="statTotal">—</div>
+      <div class="summary-label">Total Elections</div>
     </div>
-    <div class="stat-card">
-      <div class="stat-label">Active</div>
-      <div class="stat-value" style="color:var(--green);" id="statActive">—</div>
+    <div style="width:1px;height:32px;background:var(--border);"></div>
+    <div class="summary-item">
+      <div class="summary-value" style="color:var(--green);" id="statActive">—</div>
+      <div class="summary-label">Active</div>
     </div>
-    <div class="stat-card">
-      <div class="stat-label">Closed</div>
-      <div class="stat-value" style="color:var(--muted);" id="statClosed">—</div>
+    <div style="width:1px;height:32px;background:var(--border);"></div>
+    <div class="summary-item">
+      <div class="summary-value" style="color:var(--muted);" id="statClosed">—</div>
+      <div class="summary-label">Closed</div>
     </div>
-    <div class="stat-card">
-      <div class="stat-label">Total Votes Cast</div>
-      <div class="stat-value" style="color:var(--amber);" id="statVotes">—</div>
+    <div style="width:1px;height:32px;background:var(--border);"></div>
+    <div class="summary-item">
+      <div class="summary-value" style="color:var(--amber);" id="statVotes">—</div>
+      <div class="summary-label">Total Votes</div>
     </div>
   </div>
 
-  <!-- Election tabs -->
-  <div class="election-tabs" id="electionTabs">
-    <p class="text-muted text-sm">Loading elections...</p>
+  <!-- Dropdown selector -->
+  <div class="selector-row">
+    <select id="electionSelect" onchange="onElectionChange()">
+      <option value="">-- Select an election --</option>
+    </select>
+    <select id="statusFilter" style="width:auto;" onchange="populateDropdown()">
+      <option value="">All statuses</option>
+      <option value="Active">Active</option>
+      <option value="Upcoming">Upcoming</option>
+      <option value="Closed">Closed</option>
+    </select>
+    <button class="btn btn-secondary btn-sm" onclick="loadResults()">Refresh</button>
   </div>
 
   <!-- Results content -->
   <div id="resultsContent">
-    <p class="text-muted text-sm">Select an election above to view results.</p>
+    <div class="no-data">Select an election from the dropdown above to view results.</div>
   </div>
 </main>
 
@@ -118,129 +141,104 @@
   if (!token) location.href = 'login.html';
 
   document.getElementById('sidebarName').textContent = localStorage.getItem('fullName') || 'Admin';
-
   function authH() { return { 'Authorization': 'Bearer ' + token }; }
 
   let allElections = [];
-  let currentElection = null;
 
   async function loadResults() {
     const res = await fetch(`${API}/api/admin/results`, { headers: authH() });
     if (res.status === 401) { localStorage.clear(); location.href = 'login.html'; return; }
     allElections = await res.json();
 
-    // Stats
     document.getElementById('statTotal').textContent  = allElections.length;
     document.getElementById('statActive').textContent = allElections.filter(e => e.status === 'Active').length;
     document.getElementById('statClosed').textContent = allElections.filter(e => e.status === 'Closed').length;
     document.getElementById('statVotes').textContent  = allElections.reduce((s, e) => s + e.totalVotes, 0);
 
-    // Check URL param
+    populateDropdown();
+
+    // Auto-select from URL param or first election
     const urlId = parseInt(new URLSearchParams(window.location.search).get('electionId'));
-    const first = allElections.find(e => e.electionId === urlId) || allElections[0];
-
-    renderTabs(allElections, first);
-    if (first) renderResults(first);
-  }
-
-  function renderTabs(list, selected) {
-    const tabs = document.getElementById('electionTabs');
-    tabs.innerHTML = '';
-    if (!list.length) {
-      tabs.innerHTML = '<p class="text-muted text-sm">No elections found.</p>';
-      return;
+    const sel = document.getElementById('electionSelect');
+    if (urlId && allElections.find(e => e.electionId === urlId)) {
+      sel.value = urlId;
+    } else if (allElections.length) {
+      sel.value = allElections[0].electionId;
     }
-    list.forEach(e => {
-      const tab = document.createElement('div');
-      const statusClass = e.status === 'Active' ? 'status-active' : e.status === 'Closed' ? 'status-closed' : 'status-upcoming';
-      tab.className = `election-tab ${statusClass}` + (selected && e.electionId === selected.electionId ? ' active' : '');
-      tab.innerHTML = `${e.electionName} <span class="badge ${e.status === 'Active' ? 'badge-active' : e.status === 'Closed' ? 'badge-closed' : 'badge-draft'}" style="margin-left:6px;font-size:0.65rem;">${e.status}</span>`;
-      tab.onclick = () => {
-        document.querySelectorAll('.election-tab').forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-        currentElection = e;
-        renderResults(e);
-      };
-      tabs.appendChild(tab);
-    });
+    onElectionChange();
   }
 
-  function filterByStatus() {
+  function populateDropdown() {
     const status = document.getElementById('statusFilter').value;
     const filtered = status ? allElections.filter(e => e.status === status) : allElections;
-    const first = filtered[0] || null;
-    renderTabs(filtered, first);
-    if (first) renderResults(first);
-    else document.getElementById('resultsContent').innerHTML = '<p class="text-muted">No elections match this filter.</p>';
+    const sel = document.getElementById('electionSelect');
+    const prev = sel.value;
+    sel.innerHTML = '<option value="">-- Select an election --</option>';
+    filtered.forEach(e => {
+      sel.innerHTML += `<option value="${e.electionId}">[${e.status}] ${e.electionName}</option>`;
+    });
+    // Restore selection if still in list
+    if (prev && filtered.find(e => e.electionId == prev)) sel.value = prev;
+    onElectionChange();
+  }
+
+  function onElectionChange() {
+    const id = parseInt(document.getElementById('electionSelect').value);
+    const election = allElections.find(e => e.electionId === id);
+    if (!election) {
+      document.getElementById('resultsContent').innerHTML =
+        '<div class="no-data">Select an election from the dropdown above to view results.</div>';
+      return;
+    }
+    renderResults(election);
   }
 
   function renderResults(election) {
-    currentElection = election;
     const total = election.totalVotes || 0;
     const content = document.getElementById('resultsContent');
 
     const statusBadge = election.status === 'Active'
-      ? `<span class="badge badge-active">Live — votes updating in real time</span>`
+      ? `<span class="badge badge-active">Active</span>`
       : election.status === 'Closed'
-      ? `<span class="badge badge-closed">Closed — ${new Date(election.endDate).toLocaleDateString()}</span>`
+      ? `<span class="badge badge-closed">Closed</span>`
       : `<span class="badge badge-draft">Upcoming</span>`;
 
     let rows = '';
     if (!election.results || !election.results.length) {
-      rows = `<div class="no-candidates">No candidates registered for this election yet.</div>`;
+      rows = '<div class="no-data">No candidates registered for this election yet.</div>';
     } else {
-      election.results.forEach((r, i) => {
+      const rowsHtml = election.results.map((r, i) => {
         const pct = total > 0 ? ((r.totalVotes / total) * 100).toFixed(1) : 0;
         const isWinner = i === 0 && r.totalVotes > 0;
         const colors = ['green', '', 'purple', 'amber'];
-        rows += `
-          <div class="result-card ${isWinner ? 'winner' : ''}">
+        return `
+          <div class="result-row ${isWinner ? 'winner' : ''}">
             <div class="rank ${isWinner ? 'first' : ''}">${i + 1}</div>
-            <div class="result-avatar">${r.candidateName.charAt(0).toUpperCase()}</div>
-            <div class="result-info">
-              <div class="result-name">${r.candidateName}${isWinner && election.status === 'Closed' ? ' <span style="color:var(--amber);">Winner</span>' : ''}</div>
-              <div class="result-party">${r.party || 'Independent'}</div>
-              <div class="progress-wrap">
-                <div class="progress-bar"><div class="progress-fill ${colors[i] || ''}" style="width:${pct}%"></div></div>
-              </div>
+            <div class="avatar">${r.candidateName.charAt(0).toUpperCase()}</div>
+            <div class="cand-info">
+              <div class="cand-name">${r.candidateName}${isWinner && election.status === 'Closed' ? ' <span style="color:var(--amber);font-size:0.75rem;">Winner</span>' : ''}</div>
+              <div class="cand-party">${r.party || 'Independent'}</div>
             </div>
-            <div>
-              <div class="result-votes" style="${isWinner ? 'color:var(--green)' : ''}">${r.totalVotes}</div>
-              <div class="result-pct">${pct}%</div>
+            <div class="bar-wrap">
+              <div class="progress-bar"><div class="progress-fill ${colors[i] || ''}" style="width:${pct}%"></div></div>
             </div>
+            <div class="vote-count" style="${isWinner ? 'color:var(--green)' : ''}">${r.totalVotes}</div>
+            <div class="vote-pct">${pct}%</div>
           </div>`;
-      });
+      }).join('');
+      rows = `<div class="result-wrap">${rowsHtml}</div>`;
     }
 
     content.innerHTML = `
-      <div class="card mb-4">
-        <div class="flex justify-between items-center flex-wrap gap-3">
-          <div>
-            <h2 style="margin-bottom:6px;">${election.electionName}</h2>
-            ${statusBadge}
-          </div>
-          <div class="stats-grid" style="margin:0;gap:10px;">
-            <div class="stat-card" style="padding:12px 16px;">
-              <div class="stat-label">Total Votes</div>
-              <div class="stat-value" style="font-size:1.4rem;color:var(--accent);">${total}</div>
-            </div>
-            <div class="stat-card" style="padding:12px 16px;">
-              <div class="stat-label">Candidates</div>
-              <div class="stat-value" style="font-size:1.4rem;">${election.results ? election.results.length : 0}</div>
-            </div>
-            <div class="stat-card" style="padding:12px 16px;">
-              <div class="stat-label">Closes</div>
-              <div class="stat-value" style="font-size:1rem;padding-top:4px;">${new Date(election.endDate).toLocaleDateString()}</div>
-            </div>
-          </div>
-        </div>
+      <div class="election-info">
+        <h2>${election.electionName}</h2>
+        ${statusBadge}
+        <span class="text-muted text-sm">Ends: ${new Date(election.endDate).toLocaleDateString()}</span>
+        <span class="text-muted text-sm">${total} vote${total !== 1 ? 's' : ''} cast</span>
+        <span class="text-muted text-sm">${election.results ? election.results.length : 0} candidate${(election.results?.length || 0) !== 1 ? 's' : ''}</span>
       </div>
       ${rows}
-      ${election.status === 'Active' ? `
-        <div class="alert alert-info mt-3">
-          This election is still active. Results shown are live and will change as more votes are cast.
-          <button class="btn btn-secondary btn-sm" style="margin-left:12px;" onclick="loadResults()">Refresh</button>
-        </div>` : ''}`;
+      ${election.status === 'Active' ? `<div class="alert alert-info">This election is still active — results update as votes come in.</div>` : ''}`;
   }
 
   loadResults();
