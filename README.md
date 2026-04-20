@@ -53,7 +53,7 @@ npm start
 
 Then open your browser at:
 ```
-http://localhost:8081
+http://localhost:4200
 ```
 
 It will automatically open on the login page.
