@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Reports — VoteMS Admin</title>
   <link rel="stylesheet" href="../styles.css"/>
-  <!-- jsPDF for real PDF generation -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
   <style>
@@ -16,22 +15,28 @@
     .sidebar-link { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; text-decoration: none; font-size: 0.88rem; font-weight: 500; color: var(--muted); transition: all 0.15s; }
     .sidebar-link:hover { background: var(--bg3); color: var(--text); }
     .sidebar-link.active { background: var(--bg3); color: var(--text); }
-    .sidebar-link .icon { font-size: 1rem; width: 20px; text-align: center; }
     .sidebar-footer { margin-top: auto; padding-top: 16px; border-top: 1px solid var(--border); }
-    .main { margin-left: 230px; padding: 36px 40px; }
-    .report-card {
-      background: var(--card); border: 1px solid var(--border);
-      border-radius: var(--radius-lg); padding: 24px; margin-bottom: 16px;
-      display: flex; justify-content: space-between; align-items: center; gap: 20px;
-      flex-wrap: wrap;
-    }
-    .report-icon { font-size: 2rem; width: 56px; height: 56px; border-radius: 14px; background: var(--bg3); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    .report-info { flex: 1; min-width: 160px; }
-    .report-title { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; margin-bottom: 4px; }
-    .report-desc { font-size: 0.82rem; color: var(--muted); }
-    .publish-row { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 10px; }
-    .publish-row:last-child { border-bottom: none; }
-    .btn-loading { opacity: 0.7; pointer-events: none; }
+    .main { margin-left: 230px; padding: 32px 40px; max-width: 1000px; }
+
+    /* Compact summary bar */
+    .summary-bar { display: flex; gap: 24px; align-items: center; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 20px; margin-bottom: 28px; flex-wrap: wrap; }
+    .summary-item { text-align: center; }
+    .summary-value { font-family: 'Syne', sans-serif; font-size: 1.3rem; font-weight: 800; }
+    .summary-label { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+    .divider-v { width: 1px; height: 32px; background: var(--border); }
+
+    /* Report rows */
+    .report-row { display: flex; align-items: center; gap: 16px; padding: 16px 0; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+    .report-row:last-child { border-bottom: none; }
+    .report-label { flex: 1; min-width: 200px; }
+    .report-label strong { display: block; font-size: 0.9rem; margin-bottom: 2px; }
+    .report-label span { font-size: 0.8rem; color: var(--muted); }
+    .report-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+    .section-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px 24px; margin-bottom: 20px; }
+    .section-card h2 { margin-bottom: 4px; font-size: 1rem; }
+    .section-card p { font-size: 0.82rem; color: var(--muted); margin-bottom: 16px; }
+
     @media (max-width: 768px) { .sidebar { display: none; } .main { margin-left: 0; padding: 20px 16px; } }
   </style>
 </head>
@@ -40,115 +45,112 @@
 <aside class="sidebar">
   <div class="sidebar-logo"><div class="dot"></div> VoteMS <span class="badge badge-admin" style="margin-left:auto;font-size:0.65rem;">Admin</span></div>
   <div class="sidebar-section">Overview</div>
-  <a href="admin-dashboard.html" class="sidebar-link"><span class="icon"></span> Dashboard</a>
-  <a href="admin-elections.html" class="sidebar-link"><span class="icon"></span> Elections</a>
-  <a href="admin-voters.html" class="sidebar-link"><span class="icon"></span> Voters</a>
-  <a href="admin-candidates.html" class="sidebar-link"><span class="icon"></span> Candidates</a>
+  <a href="admin-dashboard.html" class="sidebar-link"> Dashboard</a>
+  <a href="admin-elections.html" class="sidebar-link"> Elections</a>
+  <a href="admin-voters.html" class="sidebar-link"> Voters</a>
+  <a href="admin-candidates.html" class="sidebar-link"> Candidates</a>
   <div class="sidebar-section" style="margin-top:8px;">Reports</div>
-  <a href="admin-results.html" class="sidebar-link"><span class="icon"></span> Results</a>
-  <a href="admin-reports.html" class="sidebar-link active"><span class="icon"></span> Reports</a>
+  <a href="admin-results.html" class="sidebar-link"> Results</a>
+  <a href="admin-reports.html" class="sidebar-link active"> Reports</a>
   <div class="sidebar-footer">
-    <div style="font-size:0.82rem;color:var(--muted);padding:0 12px 10px;">Admin User</div>
-    <a href="login.html" class="sidebar-link"><span class="icon"></span> Sign out</a>
+    <div style="font-size:0.82rem;color:var(--muted);padding:0 12px 10px;" id="sidebarName">Admin</div>
+    <a href="login.html" class="sidebar-link" onclick="localStorage.clear()"> Sign out</a>
   </div>
 </aside>
 
 <main class="main">
   <div class="mb-4">
-    <h1>Reports & Publishing</h1>
-    <p class="subtitle">Generate PDF reports and publish election results</p>
+    <h1>Reports</h1>
+    <p class="subtitle">Generate and download PDF reports for elections</p>
   </div>
 
-  <!-- Summary Stats -->
-  <div class="stats-grid mb-4">
-    <div class="stat-card">
-      <div class="stat-label">Total Votes Cast</div>
-      <div class="stat-value" style="color:var(--accent);" id="statVotes">—</div>
-      <div class="stat-sub">All elections combined</div>
+  <!-- Compact summary bar -->
+  <div class="summary-bar">
+    <div class="summary-item">
+      <div class="summary-value" style="color:var(--accent);" id="statVotes">—</div>
+      <div class="summary-label">Total Votes</div>
     </div>
-    <div class="stat-card">
-      <div class="stat-label">Elections Completed</div>
-      <div class="stat-value" style="color:var(--amber);" id="statClosed">—</div>
-      <div class="stat-sub">Results available</div>
+    <div class="divider-v"></div>
+    <div class="summary-item">
+      <div class="summary-value" style="color:var(--green);" id="statActive">—</div>
+      <div class="summary-label">Active Elections</div>
     </div>
-    <div class="stat-card">
-      <div class="stat-label">Active Elections</div>
-      <div class="stat-value" style="color:var(--green);" id="statActive">—</div>
-      <div class="stat-sub">Currently running</div>
+    <div class="divider-v"></div>
+    <div class="summary-item">
+      <div class="summary-value" style="color:var(--muted);" id="statClosed">—</div>
+      <div class="summary-label">Closed Elections</div>
     </div>
-    <div class="stat-card">
-      <div class="stat-label">Registered Voters</div>
-      <div class="stat-value" style="color:var(--text);" id="statVoters">—</div>
-      <div class="stat-sub">Total in system</div>
+    <div class="divider-v"></div>
+    <div class="summary-item">
+      <div class="summary-value" id="statVoters">—</div>
+      <div class="summary-label">Registered Voters</div>
     </div>
   </div>
 
-  <!-- Generate Reports -->
-  <h2>Generate Reports</h2>
-  <div class="mb-4">
+  <!-- Election Report (main focus) -->
+  <div class="section-card">
+    <h2>Election Report</h2>
+    <p>Select an election to generate a detailed PDF report including candidates, votes, results and turnout.</p>
 
-    <div class="report-card">
-      <div class="report-icon"></div>
-      <div class="report-info">
-        <div class="report-title">Election Summary Report</div>
-        <div class="report-desc">Total votes, turnout rate, and winner for each election</div>
-      </div>
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-        <select id="electionSelect" style="width:auto;font-size:0.82rem;">
-          <option value="all">All Elections</option>
-          <option value="council">Student Council 2025</option>
-          <option value="sports">Sports Captain 2024</option>
-          <option value="dept">Departmental Head</option>
-        </select>
-        <button class="btn btn-primary btn-sm" onclick="exportElectionSummary()">Export PDF</button>
-      </div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px;">
+      <select id="electionSelect" style="flex:1;min-width:260px;max-width:480px;">
+        <option value="">Loading elections...</option>
+      </select>
+      <button class="btn btn-primary" onclick="exportElectionReport()">Download PDF Report</button>
+      <button class="btn btn-secondary btn-sm" onclick="exportElectionCSV()">Download CSV</button>
     </div>
 
-    <div class="report-card">
-      <div class="report-icon"></div>
-      <div class="report-info">
-        <div class="report-title">Voter Turnout Report</div>
-        <div class="report-desc">Breakdown of voter participation by election and date</div>
-      </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button class="btn btn-secondary btn-sm" onclick="exportCSV('turnout')">Export CSV</button>
-        <button class="btn btn-primary btn-sm" onclick="exportVoterTurnout()">Export PDF</button>
-      </div>
-    </div>
-
-    <div class="report-card">
-      <div class="report-icon"></div>
-      <div class="report-info">
-        <div class="report-title">Candidate Performance Report</div>
-        <div class="report-desc">Votes received per candidate across all elections</div>
-      </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button class="btn btn-secondary btn-sm" onclick="exportCSV('candidates')">Export CSV</button>
-        <button class="btn btn-primary btn-sm" onclick="exportCandidateReport()">Export PDF</button>
+    <div id="electionPreview" style="display:none;">
+      <div style="background:var(--bg3);border-radius:var(--radius);padding:14px 18px;font-size:0.85rem;">
+        <div style="display:flex;gap:24px;flex-wrap:wrap;">
+          <span><strong id="prevName">—</strong></span>
+          <span class="text-muted">Status: <strong id="prevStatus">—</strong></span>
+          <span class="text-muted">Candidates: <strong id="prevCandidates">—</strong></span>
+          <span class="text-muted">Votes cast: <strong id="prevVotes">—</strong></span>
+          <span class="text-muted">Ends: <strong id="prevEnd">—</strong></span>
+        </div>
       </div>
     </div>
-
-    <div class="report-card">
-      <div class="report-icon"></div>
-      <div class="report-info">
-        <div class="report-title">Audit Log Report</div>
-        <div class="report-desc">System activity log — logins, votes, admin actions</div>
-      </div>
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-        <input type="date" id="auditDate" style="width:auto;font-size:0.82rem;" />
-        <button class="btn btn-primary btn-sm" onclick="exportAuditLog()">Export PDF</button>
-      </div>
-    </div>
-
   </div>
 
-  <!-- Publish Results -->
-  <h2>Publish Election Results</h2>
-  <div class="card">
-    <p class="text-muted text-sm mb-3">Finalize and release results so voters and candidates can view them.</p>
-    <div id="publishList"><p class="text-muted text-sm">Loading...</p></div>
-  </div>
+  <!-- Other Reports -->
+  <div class="section-card">
+    <h2>Other Reports</h2>
+    <p>Download system-wide reports for voters and candidates.</p>
 
+    <div class="report-row">
+      <div class="report-label">
+        <strong>All Elections Summary</strong>
+        <span>Overview of all elections — status, candidates, votes, dates</span>
+      </div>
+      <div class="report-actions">
+        <button class="btn btn-primary btn-sm" onclick="exportAllElectionsPDF()">Download PDF</button>
+        <button class="btn btn-secondary btn-sm" onclick="exportAllElectionsCSV()">Download CSV</button>
+      </div>
+    </div>
+
+    <div class="report-row">
+      <div class="report-label">
+        <strong>Voter List Report</strong>
+        <span>All registered voters with status and vote count</span>
+      </div>
+      <div class="report-actions">
+        <button class="btn btn-primary btn-sm" onclick="exportVotersPDF()">Download PDF</button>
+        <button class="btn btn-secondary btn-sm" onclick="exportVotersCSV()">Download CSV</button>
+      </div>
+    </div>
+
+    <div class="report-row">
+      <div class="report-label">
+        <strong>Candidate Performance Report</strong>
+        <span>All candidates with votes received per election</span>
+      </div>
+      <div class="report-actions">
+        <button class="btn btn-primary btn-sm" onclick="exportCandidatesPDF()">Download PDF</button>
+        <button class="btn btn-secondary btn-sm" onclick="exportCandidatesCSV()">Download CSV</button>
+      </div>
+    </div>
+  </div>
 </main>
 
 <script>
@@ -157,125 +159,287 @@
   if (!token) location.href = 'login.html';
   function authH() { return { 'Authorization': 'Bearer ' + token }; }
 
-  async function loadStats() {
-    const res = await fetch(`${API}/api/admin/stats`, { headers: authH() });
-    if (res.status === 401) { localStorage.clear(); location.href = 'login.html'; return; }
-    const s = await res.json();
-    document.getElementById('statVotes').textContent  = s.totalVotes;
-    document.getElementById('statClosed').textContent = s.closedElections;
-    document.getElementById('statActive').textContent = s.activeElections;
-    document.getElementById('statVoters').textContent = s.totalVoters;
+  document.getElementById('sidebarName').textContent = localStorage.getItem('fullName') || 'Admin';
+
+  let allElections = [], allVoters = [], allCandidates = [], allResults = [];
+
+  async function loadData() {
+    const [statsRes, electionsRes, votersRes, candidatesRes, resultsRes] = await Promise.all([
+      fetch(`${API}/api/admin/stats`,      { headers: authH() }),
+      fetch(`${API}/api/admin/elections`,  { headers: authH() }),
+      fetch(`${API}/api/admin/voters`,     { headers: authH() }),
+      fetch(`${API}/api/admin/candidates`, { headers: authH() }),
+      fetch(`${API}/api/admin/results`,    { headers: authH() })
+    ]);
+    if (statsRes.status === 401) { localStorage.clear(); location.href = 'login.html'; return; }
+
+    const stats = await statsRes.json();
+    allElections  = await electionsRes.json();
+    allVoters     = await votersRes.json();
+    allCandidates = await candidatesRes.json();
+    allResults    = await resultsRes.json();
+
+    document.getElementById('statVotes').textContent  = stats.totalVotes;
+    document.getElementById('statActive').textContent = stats.activeElections;
+    document.getElementById('statClosed').textContent = stats.closedElections;
+    document.getElementById('statVoters').textContent = stats.totalVoters;
+
+    // Populate election dropdown
+    const sel = document.getElementById('electionSelect');
+    sel.innerHTML = '<option value="">-- Select an election --</option>';
+    allElections.forEach(e => {
+      sel.innerHTML += `<option value="${e.electionId}">[${e.status}] ${e.electionName}</option>`;
+    });
+    sel.onchange = updatePreview;
   }
 
-  async function loadPublishList() {
-    const res = await fetch(`${API}/api/admin/elections`, { headers: authH() });
-    const elections = await res.json();
-    const closed = elections.filter(e => e.status === 'Closed');
-    const list = document.getElementById('publishList');
-    if (!closed.length) { list.innerHTML = '<p class="text-muted text-sm">No closed elections yet.</p>'; return; }
-    list.innerHTML = closed.map(e => `
-      <div class="publish-row">
-        <div>
-          <div style="font-weight:600;">${e.electionName}</div>
-          <div class="text-muted text-sm">Closed ${new Date(e.endDate).toLocaleDateString()} · ${e.voteCount} votes</div>
-        </div>
-        <div class="flex items-center gap-3">
-          <span class="badge badge-active">Closed</span>
-          <a href="admin-results.html?electionId=${e.electionId}" class="btn btn-secondary btn-sm">View Results</a>
-        </div>
-      </div>`).join('');
+  function updatePreview() {
+    const id = parseInt(document.getElementById('electionSelect').value);
+    const e  = allElections.find(x => x.electionId === id);
+    const preview = document.getElementById('electionPreview');
+    if (!e) { preview.style.display = 'none'; return; }
+    preview.style.display = 'block';
+    document.getElementById('prevName').textContent       = e.electionName;
+    document.getElementById('prevStatus').textContent     = e.status;
+    document.getElementById('prevCandidates').textContent = e.candidateCount;
+    document.getElementById('prevVotes').textContent      = e.voteCount;
+    document.getElementById('prevEnd').textContent        = new Date(e.endDate).toLocaleDateString();
   }
 
+  // ── PDF helpers ──────────────────────────────────────────────────────
   const { jsPDF } = window.jspdf;
 
   function createDoc(title, subtitle) {
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-    const now = new Date().toLocaleString();
     const pageW = doc.internal.pageSize.getWidth();
-    doc.setFillColor(30, 35, 48); doc.rect(0, 0, pageW, 28, 'F');
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(16); doc.setTextColor(79, 142, 247); doc.text('VoteMS', 14, 12);
-    doc.setFontSize(8); doc.setTextColor(123, 131, 160); doc.text('Voting Management System', 14, 18);
-    doc.setFontSize(11); doc.setTextColor(232, 236, 244); doc.text(title, 14, 24);
-    doc.setFontSize(7); doc.setTextColor(123, 131, 160); doc.text('Generated: ' + now, pageW - 14, 24, { align: 'right' });
-    doc.setFontSize(9); doc.setTextColor(123, 131, 160); doc.text(subtitle, 14, 36);
-    doc.setDrawColor(42, 47, 62); doc.line(14, 39, pageW - 14, 39);
-    return { doc, y: 44 };
+    const now   = new Date().toLocaleString();
+
+    // Header bar
+    doc.setFillColor(59, 126, 246);
+    doc.rect(0, 0, pageW, 26, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14); doc.setTextColor(255, 255, 255);
+    doc.text('VoteMS', 14, 11);
+    doc.setFontSize(8); doc.setTextColor(220, 230, 255);
+    doc.text('Voting Management System', 14, 18);
+    doc.setFontSize(10); doc.setTextColor(255, 255, 255);
+    doc.text(title, pageW / 2, 11, { align: 'center' });
+    doc.setFontSize(7); doc.setTextColor(220, 230, 255);
+    doc.text('Generated: ' + now, pageW - 14, 18, { align: 'right' });
+
+    // Subtitle
+    doc.setFontSize(9); doc.setTextColor(80, 80, 100);
+    doc.text(subtitle, 14, 34);
+    doc.setDrawColor(200, 210, 230);
+    doc.line(14, 37, pageW - 14, 37);
+
+    return { doc, y: 42 };
   }
 
   function addFooter(doc) {
-    const pageW = doc.internal.pageSize.getWidth(), pageH = doc.internal.pageSize.getHeight();
-    doc.setFillColor(19, 22, 29); doc.rect(0, pageH - 12, pageW, 12, 'F');
-    doc.setFontSize(7); doc.setTextColor(123, 131, 160);
-    doc.text('VoteMS — Confidential Report', 14, pageH - 4);
-    doc.text('Page 1', pageW - 14, pageH - 4, { align: 'right' });
+    const pageW = doc.internal.pageSize.getWidth();
+    const pageH = doc.internal.pageSize.getHeight();
+    doc.setFillColor(245, 247, 252);
+    doc.rect(0, pageH - 10, pageW, 10, 'F');
+    doc.setFontSize(7); doc.setTextColor(130, 140, 160);
+    doc.text('VoteMS — Confidential Election Report', 14, pageH - 3);
+    doc.text(`Generated ${new Date().toLocaleDateString()}`, pageW - 14, pageH - 3, { align: 'right' });
   }
 
-  async function exportElectionSummary() {
-    const res = await fetch(`${API}/api/admin/elections`, { headers: authH() });
-    const elections = await res.json();
-    const { doc, y } = createDoc('Election Summary Report', 'Overview of all elections');
+  const tableStyles = {
+    styles: { fontSize: 8, cellPadding: 4, textColor: [30, 30, 50], fillColor: [255, 255, 255], lineColor: [210, 218, 235], lineWidth: 0.3 },
+    headStyles: { fillColor: [59, 126, 246], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 7.5 },
+    alternateRowStyles: { fillColor: [245, 247, 252] },
+    margin: { left: 14, right: 14 }
+  };
+
+  // ── Election-specific PDF ────────────────────────────────────────────
+  async function exportElectionReport() {
+    const id = parseInt(document.getElementById('electionSelect').value);
+    if (!id) { alert('Please select an election first'); return; }
+
+    const election = allElections.find(e => e.electionId === id);
+    const results  = allResults.find(e => e.electionId === id);
+    if (!election) { alert('Election not found'); return; }
+
+    const { doc, y } = createDoc(
+      `Election Report: ${election.electionName}`,
+      `${election.status} · ${new Date(election.startDate).toLocaleDateString()} – ${new Date(election.endDate).toLocaleDateString()}`
+    );
+    const pageW = doc.internal.pageSize.getWidth();
+
+    // Info boxes
+    let cy = y;
+    const boxes = [
+      { label: 'Status',     value: election.status },
+      { label: 'Candidates', value: String(election.candidateCount) },
+      { label: 'Votes Cast', value: String(election.voteCount) },
+      { label: 'Start Date', value: new Date(election.startDate).toLocaleDateString() },
+      { label: 'End Date',   value: new Date(election.endDate).toLocaleDateString() }
+    ];
+    const bw = (pageW - 28) / boxes.length;
+    boxes.forEach((b, i) => {
+      const x = 14 + i * bw;
+      doc.setFillColor(245, 247, 252);
+      doc.roundedRect(x, cy, bw - 3, 16, 2, 2, 'F');
+      doc.setFontSize(7); doc.setTextColor(100, 110, 140);
+      doc.text(b.label.toUpperCase(), x + 4, cy + 6);
+      doc.setFontSize(10); doc.setFont('helvetica', 'bold'); doc.setTextColor(30, 30, 50);
+      doc.text(b.value, x + 4, cy + 13);
+      doc.setFont('helvetica', 'normal');
+    });
+    cy += 22;
+
+    // Results table
+    if (results && results.results && results.results.length) {
+      const total = results.totalVotes || 0;
+      doc.setFontSize(10); doc.setFont('helvetica', 'bold'); doc.setTextColor(30, 30, 50);
+      doc.text('Candidate Results', 14, cy + 6);
+      cy += 10;
+
+      doc.autoTable({
+        startY: cy,
+        head: [['Rank', 'Candidate', 'Party', 'Votes', 'Share', 'Result']],
+        body: results.results.map((r, i) => {
+          const pct = total > 0 ? ((r.totalVotes / total) * 100).toFixed(1) + '%' : '0%';
+          const result = i === 0 && r.totalVotes > 0 && election.status === 'Closed' ? 'Winner' : i === 0 && election.status === 'Active' ? 'Leading' : '';
+          return [i + 1, r.candidateName, r.party || 'Independent', r.totalVotes, pct, result];
+        }),
+        ...tableStyles,
+        columnStyles: {
+          0: { cellWidth: 12, halign: 'center' },
+          3: { halign: 'center' },
+          4: { halign: 'center', textColor: [59, 126, 246] },
+          5: { textColor: [22, 169, 122], fontStyle: 'bold' }
+        }
+      });
+      cy = doc.lastAutoTable.finalY + 10;
+    } else {
+      doc.setFontSize(9); doc.setTextColor(130, 140, 160);
+      doc.text('No candidates registered for this election.', 14, cy + 8);
+      cy += 16;
+    }
+
+    // Voters who voted in this election
+    const electionVoters = allVoters.filter(v => v.votesCount > 0);
+    if (electionVoters.length) {
+      doc.setFontSize(10); doc.setFont('helvetica', 'bold'); doc.setTextColor(30, 30, 50);
+      doc.text('Voter Participation', 14, cy + 6);
+      cy += 10;
+      doc.autoTable({
+        startY: cy,
+        head: [['Voter Name', 'Email', 'National ID', 'Status']],
+        body: allVoters.map(v => [v.fullName, v.email, v.nationalId || '—', v.status]),
+        ...tableStyles
+      });
+    }
+
+    addFooter(doc);
+    const filename = `VoteMS_${election.electionName.replace(/\s+/g, '_')}_Report.pdf`;
+    doc.save(filename);
+  }
+
+  // ── Election CSV ─────────────────────────────────────────────────────
+  function exportElectionCSV() {
+    const id = parseInt(document.getElementById('electionSelect').value);
+    if (!id) { alert('Please select an election first'); return; }
+    const election = allElections.find(e => e.electionId === id);
+    const results  = allResults.find(e => e.electionId === id);
+    if (!election) return;
+
+    const total = results?.totalVotes || 0;
+    let csv = `Election Report: ${election.electionName}\n`;
+    csv += `Status,${election.status}\nStart,${new Date(election.startDate).toLocaleDateString()}\nEnd,${new Date(election.endDate).toLocaleDateString()}\nTotal Votes,${election.voteCount}\n\n`;
+    csv += 'Rank,Candidate,Party,Votes,Share\n';
+    if (results?.results) {
+      results.results.forEach((r, i) => {
+        const pct = total > 0 ? ((r.totalVotes / total) * 100).toFixed(1) + '%' : '0%';
+        csv += `${i + 1},"${r.candidateName}","${r.party || 'Independent'}",${r.totalVotes},${pct}\n`;
+      });
+    }
+    downloadCSV(csv, `VoteMS_${election.electionName.replace(/\s+/g, '_')}.csv`);
+  }
+
+  // ── All Elections PDF ────────────────────────────────────────────────
+  async function exportAllElectionsPDF() {
+    const { doc, y } = createDoc('All Elections Summary', 'Overview of every election in the system');
     doc.autoTable({
       startY: y,
       head: [['Election', 'Status', 'Candidates', 'Votes', 'Start', 'End']],
-      body: elections.map(e => [e.electionName, e.status, e.candidateCount, e.voteCount,
-        new Date(e.startDate).toLocaleDateString(), new Date(e.endDate).toLocaleDateString()]),
-      styles: { fontSize: 8, cellPadding: 4, textColor: [232,236,244], fillColor: [30,35,48], lineColor: [42,47,62], lineWidth: 0.3 },
-      headStyles: { fillColor: [26,30,40], textColor: [123,131,160], fontStyle: 'bold', fontSize: 7 },
-      alternateRowStyles: { fillColor: [19,22,29] },
-      margin: { left: 14, right: 14 }
+      body: allElections.map(e => [
+        e.electionName, e.status, e.candidateCount, e.voteCount,
+        new Date(e.startDate).toLocaleDateString(),
+        new Date(e.endDate).toLocaleDateString()
+      ]),
+      ...tableStyles
     });
     addFooter(doc);
-    doc.save('VoteMS_Election_Summary.pdf');
+    doc.save('VoteMS_All_Elections.pdf');
   }
 
-  async function exportVoterTurnout() {
-    const res = await fetch(`${API}/api/admin/voters`, { headers: authH() });
-    const voters = await res.json();
-    const { doc, y } = createDoc('Voter Report', 'All registered voters');
+  function exportAllElectionsCSV() {
+    let csv = 'Election,Status,Candidates,Votes,Start,End\n';
+    allElections.forEach(e => {
+      csv += `"${e.electionName}",${e.status},${e.candidateCount},${e.voteCount},${new Date(e.startDate).toLocaleDateString()},${new Date(e.endDate).toLocaleDateString()}\n`;
+    });
+    downloadCSV(csv, 'VoteMS_All_Elections.csv');
+  }
+
+  // ── Voters PDF ───────────────────────────────────────────────────────
+  async function exportVotersPDF() {
+    const { doc, y } = createDoc('Voter List Report', `${allVoters.length} registered voters`);
     doc.autoTable({
       startY: y,
       head: [['Name', 'Email', 'National ID', 'Votes Cast', 'Status']],
-      body: voters.map(v => [v.fullName, v.email, v.nationalId || '—', v.votesCount, v.status]),
-      styles: { fontSize: 8, cellPadding: 4, textColor: [232,236,244], fillColor: [30,35,48], lineColor: [42,47,62], lineWidth: 0.3 },
-      headStyles: { fillColor: [26,30,40], textColor: [123,131,160], fontStyle: 'bold', fontSize: 7 },
-      alternateRowStyles: { fillColor: [19,22,29] },
-      margin: { left: 14, right: 14 }
+      body: allVoters.map(v => [v.fullName, v.email, v.nationalId || '—', v.votesCount, v.status]),
+      ...tableStyles
     });
     addFooter(doc);
-    doc.save('VoteMS_Voters_Report.pdf');
+    doc.save('VoteMS_Voters.pdf');
   }
 
-  async function exportCandidateReport() {
-    const res = await fetch(`${API}/api/admin/candidates`, { headers: authH() });
-    const candidates = await res.json();
-    const { doc, y } = createDoc('Candidate Performance Report', 'Votes per candidate');
+  function exportVotersCSV() {
+    let csv = 'Name,Email,National ID,Votes Cast,Status\n';
+    allVoters.forEach(v => {
+      csv += `"${v.fullName}","${v.email}","${v.nationalId || ''}",${v.votesCount},${v.status}\n`;
+    });
+    downloadCSV(csv, 'VoteMS_Voters.csv');
+  }
+
+  // ── Candidates PDF ───────────────────────────────────────────────────
+  async function exportCandidatesPDF() {
+    const { doc, y } = createDoc('Candidate Performance Report', `${allCandidates.length} candidates across all elections`);
     doc.autoTable({
       startY: y,
-      head: [['Candidate', 'Party', 'Election', 'Votes', 'Status']],
-      body: candidates.map(c => [c.user.fullName, c.party || 'Independent', c.electionName, c.voteCount, c.electionStatus]),
-      styles: { fontSize: 8, cellPadding: 4, textColor: [232,236,244], fillColor: [30,35,48], lineColor: [42,47,62], lineWidth: 0.3 },
-      headStyles: { fillColor: [26,30,40], textColor: [123,131,160], fontStyle: 'bold', fontSize: 7 },
-      alternateRowStyles: { fillColor: [19,22,29] },
-      margin: { left: 14, right: 14 }
+      head: [['Candidate', 'Email', 'Party', 'Election', 'Votes', 'Election Status']],
+      body: allCandidates.map(c => [
+        c.user.fullName, c.user.email, c.party || 'Independent',
+        c.electionName, c.voteCount, c.electionStatus
+      ]),
+      ...tableStyles
     });
     addFooter(doc);
-    doc.save('VoteMS_Candidates_Report.pdf');
+    doc.save('VoteMS_Candidates.pdf');
   }
 
-  function exportAuditLog() {
-    const { doc, y } = createDoc('Audit Log Report', 'System activity log');
-    doc.setFontSize(9); doc.setTextColor(123,131,160);
-    doc.text('Audit logging is not yet implemented in the backend.', 14, y + 10);
-    addFooter(doc);
-    doc.save('VoteMS_Audit_Log.pdf');
+  function exportCandidatesCSV() {
+    let csv = 'Candidate,Email,Party,Election,Votes,Election Status\n';
+    allCandidates.forEach(c => {
+      csv += `"${c.user.fullName}","${c.user.email}","${c.party || 'Independent'}","${c.electionName}",${c.voteCount},${c.electionStatus}\n`;
+    });
+    downloadCSV(csv, 'VoteMS_Candidates.csv');
   }
 
-  function exportCSV(type) {
-    alert('CSV export coming soon.');
+  // ── CSV helper ───────────────────────────────────────────────────────
+  function downloadCSV(csv, filename) {
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = filename; a.click();
+    URL.revokeObjectURL(url);
   }
 
-  loadStats();
-  loadPublishList();
+  loadData();
 </script>
 </body>
 </html>
