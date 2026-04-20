@@ -48,7 +48,7 @@ Keep this window open.
 Open a **second CMD window** in the project root and run:
 
 ```cmd
-npx serve VotingSystem -l 8081
+npm start
 ```
 
 Then open your browser at:
@@ -56,13 +56,7 @@ Then open your browser at:
 http://localhost:8081
 ```
 
-It will automatically redirect to the login page.
-
-> If you prefer Python:
-> ```cmd
-> cd VotingSystem
-> python -m http.server 8081
-> ```
+It will automatically open on the login page.
 
 ---
 
