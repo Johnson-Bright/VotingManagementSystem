@@ -223,45 +223,6 @@ Position      1 ──── N   Candidates
 
 
 
-## Getting Started
-
-### Prerequisites
-
-- [.NET 10 SDK](https://dotnet.microsoft.com/download)
-- [Visual Studio 2022](https://visualstudio.microsoft.com/) (or any compatible IDE)
-
-### Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/your-username/VoteMS.git
-   cd VoteMS
-   ```
-
-2. **Restore dependencies**
-   ```bash
-   dotnet restore
-   ```
-
-3. **Apply database migrations**
-   ```bash
-   dotnet ef database update
-   ```
-
-4. **Run the application**
-   ```bash
-   dotnet run
-   ```
-
-5. **Open in browser**
-   ```
-   https://localhost:{port}/index.html
-   ```
-
-> On first run, the database is automatically seeded with default admin credentials, a sample election, positions, and candidates.
-
-
-
 ## Default Credentials
 
 | Role | Email | Password |
