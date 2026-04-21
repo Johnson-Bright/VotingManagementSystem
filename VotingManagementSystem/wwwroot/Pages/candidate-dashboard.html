@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Candidate Dashboard — VoteMS</title>
+  <link rel="stylesheet" href="../styles.css?v=4"/>
+  <style>
+    .election-item { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+    .election-item.running { border-color: var(--accent); background: #EFF6FF; }
+    .election-title-text { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; margin-bottom: 6px; }
+    .election-pos { font-size: 0.82rem; color: var(--accent); font-weight: 500; margin-bottom: 10px; }
+    .vote-bar-label { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--muted); margin-bottom: 4px; }
+    .info-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px; margin-bottom: 28px; }
+    .user-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px 20px; text-align: right; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+    /* all-elections section */
+    .election-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+    .election-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); display: flex; flex-direction: column; }
+    .election-card:hover { border-color: var(--accent); }
+    .election-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px solid var(--border); margin-top: auto; gap: 6px; flex-wrap: wrap; }
+    .deadline { font-size: 0.78rem; color: var(--muted); margin-bottom: 8px; }
+    .deadline span { color: var(--amber); font-weight: 500; }
+  </style>
+</head>
+<body>
+<nav>
+  <a href="../index.html" class="nav-logo"><div class="dot"></div> VoteMS</a>
+  <div class="nav-links">
+    <a href="candidate-dashboard.html" class="active">Dashboard</a>
+    <a href="voter-dashboard.html">Elections</a>
+    <a href="results.html">Results</a>
+    <a href="candidate-profile.html">My Profile</a>
+    <a href="login.html" onclick="localStorage.clear();sessionStorage.clear()">Sign out</a>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="flex justify-between items-center mb-4">
+    <div>
+      <h1>Candidate Dashboard</h1>
+      <p class="subtitle">Track your elections, vote, and manage your profile</p>
+    </div>
+    <div class="user-card">
+      <div class="text-sm text-muted">Logged in as</div>
+      <div style="font-weight:600;margin-top:2px;" id="candName">—</div>
+      <div class="mt-1"><span class="badge" style="background:#F5F3FF;color:#5B21B6;border:1px solid #DDD6FE;">Candidate</span></div>
+    </div>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">Elections Running In</div>
+      <div class="stat-value" id="runningCount" style="color:var(--accent);">—</div>
+      <div class="stat-sub">Approved &amp; active</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total Votes Received</div>
+      <div class="stat-value" id="votesReceived" style="color:var(--green);">—</div>
+      <div class="stat-sub">Across all elections</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Application Status</div>
+      <div class="stat-value" id="appStatus" style="font-size:1.1rem;padding-top:6px;">—</div>
+      <div class="stat-sub">Most recent application</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Pending Applications</div>
+      <div class="stat-value" id="pendingCount" style="color:var(--amber);">—</div>
+      <div class="stat-sub">Awaiting admin review</div>
+    </div>
+  </div>
+
+  <!-- Elections I'm approved in -->
+  <h2>My Approved Elections</h2>
+  <div class="info-grid" id="myElections">
+    <p class="text-muted text-sm">Loading...</p>
+  </div>
+
+  <!-- All open elections (can vote + apply) -->
+  <h2>All Active Elections</h2>
+  <p class="subtitle" style="margin-bottom:16px;">You can vote in any election and apply as a candidate</p>
+  <div class="election-grid mb-4" id="allOpenElections">
+    <p class="text-muted text-sm">Loading...</p>
+  </div>
+
+  <div class="flex gap-3 mt-3">
+    <a href="candidate-profile.html" class="btn btn-primary">Edit My Profile</a>
+    <a href="voter-dashboard.html" class="btn btn-secondary">Go to Elections</a>
+  </div>
+</div>
+
+<script>
+  async function loadCandidateDashboard() {
+    const userId = parseInt(localStorage.getItem('userId') || sessionStorage.getItem('userId') || '0');
+    if (!userId) { location.href = 'login.html'; return; }
+
+    const [cRes, eRes, vRes] = await Promise.all([
+      fetch('/api/admin/candidates'),
+      fetch('/api/elections'),
+      fetch(`/api/votes/byvoter/${userId}`)
+    ]);
+    const candidates = await cRes.json();
+    const elections = await eRes.json();
+    const myVotes = await vRes.json();
+
+    // All my candidate applications
+    const myApps = candidates.filter(c => c.userId === userId);
+    const approvedApps = myApps.filter(c => c.status === 'Approved');
+    const pendingApps = myApps.filter(c => c.status === 'Pending');
+
+    // Use first approved, or first pending, or first overall
+    const primary = approvedApps[0] || myApps[0];
+
+    if (primary) {
+      document.getElementById('candName').textContent = primary.name;
+      const badgeClass = primary.status === 'Approved' ? 'badge-active' : primary.status === 'Rejected' ? 'badge-closed' : 'badge-draft';
+      document.getElementById('appStatus').innerHTML = `<span class="badge ${badgeClass}">${primary.status}</span>`;
+    } else {
+      document.getElementById('candName').textContent = 'No profile yet';
+      document.getElementById('appStatus').innerHTML = '<span class="text-muted text-sm">Not applied</span>';
+    }
+
+    document.getElementById('pendingCount').textContent = pendingApps.length;
+
+    // Total votes across all my approved candidacies
+    let totalVotes = 0;
+    for (const app of approvedApps) {
+      try {
+        const r = await fetch(`/api/votes/candidate/${app.id}/count`);
+        const j = await r.json();
+        totalVotes += j.count;
+      } catch(e) {}
+    }
+    document.getElementById('votesReceived').textContent = totalVotes;
+
+    // Elections I'm approved in
+    const approvedElectionIds = approvedApps.map(a => a.electionId).filter(Boolean);
+    const myElections = elections.filter(e => approvedElectionIds.includes(e.id));
+    document.getElementById('runningCount').textContent = myElections.filter(e => e.status === 'Open').length;
+
+    const myWrap = document.getElementById('myElections');
+    myWrap.innerHTML = '';
+    if (!approvedApps.length) {
+      myWrap.innerHTML = '<p class="text-muted text-sm">No approved candidacies yet. Apply from the elections below.</p>';
+    } else {
+      for (const app of approvedApps) {
+        const election = elections.find(e => e.id === app.electionId);
+        let rank = '—', pct = 0;
+        try {
+          const rRes = await fetch(`/api/elections/${app.electionId}/results`);
+          const results = await rRes.json();
+          const total = results.reduce((s, r) => s + r.votes, 0);
+          const myRank = results.findIndex(r => r.candidateId === app.id);
+          if (myRank >= 0) { rank = '#' + (myRank + 1); pct = results[myRank].percentage; }
+        } catch(e) {}
+
+        const div = document.createElement('div');
+        div.className = 'election-item' + (election?.status === 'Open' ? ' running' : '');
+        div.innerHTML = `
+          <div class="flex justify-between items-center mb-2">
+            <span class="badge ${election?.status === 'Open' ? 'badge-active' : 'badge-closed'}">${election?.status ?? 'Unknown'}</span>
+            <span class="text-sm text-muted">Closes ${election ? new Date(election.endDate).toLocaleDateString() : '—'}</span>
+          </div>
+          <div class="election-title-text">${election?.title ?? 'Election #' + app.electionId}</div>
+          <div class="election-pos">Current Ranking: ${rank}</div>
+          <div class="vote-bar-label"><span>Your vote share</span><span style="color:var(--green);font-weight:600;">${pct}%</span></div>
+          <div class="progress-wrap"><div class="progress-bar"><div class="progress-fill green" style="width:${pct}%"></div></div></div>
+          <div class="flex gap-2 mt-2">
+            <a href="results.html?electionId=${app.electionId}" class="btn btn-secondary btn-sm">View Results</a>
+          </div>`;
+        myWrap.appendChild(div);
+      }
+    }
+
+    // All open elections — candidate can vote + apply
+    const openElections = elections.filter(e => e.status === 'Open');
+    const allWrap = document.getElementById('allOpenElections');
+    allWrap.innerHTML = '';
+    if (!openElections.length) {
+      allWrap.innerHTML = '<p class="text-muted text-sm">No active elections at the moment.</p>';
+    } else {
+      openElections.forEach(e => {
+        const hasVoted = Array.isArray(myVotes) && myVotes.some(v => v.electionId === e.id);
+        const isRunning = approvedElectionIds.includes(e.id);
+        const div = document.createElement('div');
+        div.className = 'election-card';
+        div.innerHTML = `
+          <div class="flex justify-between items-center mb-2">
+            <span class="badge badge-active">Active</span>
+            ${isRunning ? '<span class="badge" style="background:#F5F3FF;color:#5B21B6;border:1px solid #DDD6FE;">Running</span>' : ''}
+          </div>
+          <div class="election-title-text">${e.title}</div>
+          <div class="text-sm text-muted mb-2">${e.description || ''}</div>
+          <div class="deadline">Closes: <span>${new Date(e.endDate).toLocaleString()}</span></div>
+          <div class="election-footer">
+            <div class="text-sm text-muted">${hasVoted ? '<span style="color:var(--green);font-weight:600;">&#10003; Voted</span>' : 'Not voted'}</div>
+            <div class="flex gap-2">
+              ${!isRunning ? `<a href="voter-dashboard.html" class="btn btn-secondary btn-sm">Apply</a>` : ''}
+              ${hasVoted
+                ? `<a href="results.html?electionId=${e.id}" class="btn btn-success btn-sm">Results</a>`
+                : `<a href="cast-vote.html?electionId=${e.id}" class="btn btn-primary btn-sm">Vote now</a>`}
+            </div>
+          </div>`;
+        allWrap.appendChild(div);
+      });
+    }
+  }
+
+  loadCandidateDashboard();
+</script>
+</body>
+</html>

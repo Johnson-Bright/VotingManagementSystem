@@ -1,0 +1,496 @@
+[
+  {
+    "ContainingType": "VotingManagementSystem.Controllers.AdminController",
+    "Method": "GetCandidates",
+    "RelativePath": "api/Admin/candidates",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "VotingManagementSystem.Controllers.AdminController",
+    "Method": "AddCandidate",
+    "RelativePath": "api/Admin/candidates",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "c",
+        "Type": "VotingManagementSystem.Models.Candidate",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "VotingManagementSystem.Controllers.AdminController",
+    "Method": "GetCandidate",
+    "RelativePath": "api/Admin/candidates/{id}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "VotingManagementSystem.Controllers.AdminController",
+    "Method": "UpdateCandidate",
+    "RelativePath": "api/Admin/candidates/{id}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "updated",
+        "Type": "VotingManagementSystem.Models.Candidate",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "VotingManagementSystem.Controllers.AdminController",
+    "Method": "RemoveCandidate",
+    "RelativePath": "api/Admin/candidates/{id}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "VotingManagementSystem.Controllers.AdminController",
+    "Method": "ApproveCandidate",
+    "RelativePath": "api/Admin/candidates/approve/{id}",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "VotingManagementSystem.Controllers.AdminController",
+    "Method": "RejectCandidate",
+    "RelativePath": "api/Admin/candidates/reject/{id}",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "VotingManagementSystem.Controllers.AdminController",
+    "Method": "GetElections",
+    "RelativePath": "api/Admin/elections",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "VotingManagementSystem.Controllers.AdminController",
+    "Method": "CreateElection",
+    "RelativePath": "api/Admin/elections",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "e",
+        "Type": "VotingManagementSystem.Models.Election",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "VotingManagementSystem.Controllers.AdminController",
+    "Method": "GetElection",
+    "RelativePath": "api/Admin/elections/{id}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "VotingManagementSystem.Controllers.AdminController",
+    "Method": "UpdateElection",
+    "RelativePath": "api/Admin/elections/{id}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "updated",
+        "Type": "VotingManagementSystem.Models.Election",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "VotingManagementSystem.Controllers.AdminController",
+    "Method": "DeleteElection",
+    "RelativePath": "api/Admin/elections/{id}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "VotingManagementSystem.Controllers.AdminController",
+    "Method": "GetPositions",
+    "RelativePath": "api/Admin/positions",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "VotingManagementSystem.Controllers.AdminController",
+    "Method": "CreatePosition",
+    "RelativePath": "api/Admin/positions",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "p",
+        "Type": "VotingManagementSystem.Models.Position",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "VotingManagementSystem.Controllers.AdminController",
+    "Method": "UpdatePosition",
+    "RelativePath": "api/Admin/positions/{id}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "updated",
+        "Type": "VotingManagementSystem.Models.Position",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "VotingManagementSystem.Controllers.AdminController",
+    "Method": "DeletePosition",
+    "RelativePath": "api/Admin/positions/{id}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "VotingManagementSystem.Controllers.AdminController",
+    "Method": "GetStats",
+    "RelativePath": "api/Admin/stats",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "VotingManagementSystem.Controllers.AdminController",
+    "Method": "GetUsers",
+    "RelativePath": "api/Admin/users",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "VotingManagementSystem.Controllers.AdminController",
+    "Method": "DeleteUser",
+    "RelativePath": "api/Admin/users/{id}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "VotingManagementSystem.Controllers.AdminController",
+    "Method": "GetVoters",
+    "RelativePath": "api/Admin/voters",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "VotingManagementSystem.Controllers.AdminController",
+    "Method": "GetVoter",
+    "RelativePath": "api/Admin/voters/{id}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "VotingManagementSystem.Controllers.AdminController",
+    "Method": "UpdateVoter",
+    "RelativePath": "api/Admin/voters/{id}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "updated",
+        "Type": "VotingManagementSystem.Models.Voter",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "VotingManagementSystem.Controllers.AdminController",
+    "Method": "DeleteVoter",
+    "RelativePath": "api/Admin/voters/{id}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "VotingManagementSystem.Controllers.AuthController",
+    "Method": "Login",
+    "RelativePath": "api/Auth/login",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "req",
+        "Type": "VotingManagementSystem.Controllers.LoginRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "VotingManagementSystem.Controllers.AuthController",
+    "Method": "Register",
+    "RelativePath": "api/Auth/register",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "req",
+        "Type": "VotingManagementSystem.Controllers.RegisterRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "VotingManagementSystem.Controllers.ElectionsController",
+    "Method": "GetAll",
+    "RelativePath": "api/Elections",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "VotingManagementSystem.Controllers.ElectionsController",
+    "Method": "GetCandidates",
+    "RelativePath": "api/Elections/{id}/candidates",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "VotingManagementSystem.Controllers.ElectionsController",
+    "Method": "GetResults",
+    "RelativePath": "api/Elections/{id}/results",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "VotingManagementSystem.Controllers.VotesController",
+    "Method": "ByVoter",
+    "RelativePath": "api/Votes/byvoter/{userId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "userId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "VotingManagementSystem.Controllers.VotesController",
+    "Method": "CandidateCount",
+    "RelativePath": "api/Votes/candidate/{candidateId}/count",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "candidateId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "VotingManagementSystem.Controllers.VotesController",
+    "Method": "GetCandidates",
+    "RelativePath": "api/Votes/candidates",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "VotingManagementSystem.Controllers.VotesController",
+    "Method": "Cast",
+    "RelativePath": "api/Votes/cast",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "req",
+        "Type": "VotingManagementSystem.Controllers.CastVoteRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "VotingManagementSystem.Controllers.VotesController",
+    "Method": "Results",
+    "RelativePath": "api/Votes/results",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  }
+]

@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Elections — VoteMS</title>
+  <link rel="stylesheet" href="../styles.css?v=4"/>
+  <style>
+    .election-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 18px; }
+    .election-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 22px; transition: border-color 0.2s, box-shadow 0.2s; box-shadow: 0 1px 4px rgba(0,0,0,0.05); display: flex; flex-direction: column; }
+    .election-card:hover { border-color: var(--accent); box-shadow: 0 4px 16px rgba(37,99,235,0.1); }
+    .election-card.voted { border-color: var(--green); }
+    .election-meta { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+    .election-title { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; margin-bottom: 6px; }
+    .election-desc { font-size: 0.85rem; color: var(--muted); line-height: 1.5; margin-bottom: 10px; flex: 1; }
+    .election-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 12px; border-top: 1px solid var(--border); gap: 6px; flex-wrap: wrap; margin-top: auto; }
+    .voted-check { display: flex; align-items: center; gap: 5px; font-size: 0.82rem; color: var(--green); font-weight: 600; }
+    .deadline { font-size: 0.78rem; color: var(--muted); margin-bottom: 10px; }
+    .deadline span { color: var(--amber); font-weight: 500; }
+    .user-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px 20px; text-align: right; box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
+    .cand-count { font-size: 0.8rem; color: var(--muted); }
+    /* Apply modal */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 300; display: none; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(2px); }
+    .modal-overlay.open { display: flex; }
+    .modal { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 32px; width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
+    .modal h2 { margin-bottom: 6px; }
+    .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
+    .error-msg { color: var(--red); font-size: 0.85rem; margin-top: 8px; display: none; }
+    .success-msg { color: var(--green); font-size: 0.85rem; margin-top: 8px; display: none; }
+  </style>
+</head>
+<body>
+<nav>
+  <a href="../index.html" class="nav-logo"><div class="dot"></div> VoteMS</a>
+  <div class="nav-links" id="navLinks"></div>
+</nav>
+
+<div class="page">
+  <div class="flex justify-between items-center mb-4">
+    <div>
+      <h1>Active Elections</h1>
+      <p class="subtitle">Browse elections, cast your vote, or apply as a candidate</p>
+    </div>
+    <div class="user-card">
+      <div class="text-sm text-muted">Logged in as</div>
+      <div style="font-weight:600;margin-top:2px;" id="userName">—</div>
+      <div class="mt-1" id="userBadge"><span class="badge badge-voter">Voter</span></div>
+    </div>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">Active Elections</div>
+      <div class="stat-value" id="activeCount" style="color:var(--accent);">—</div>
+      <div class="stat-sub">Open for voting</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">My Votes Cast</div>
+      <div class="stat-value" id="votesCast" style="color:var(--green);">—</div>
+      <div class="stat-sub">Elections participated</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Closed Elections</div>
+      <div class="stat-value" id="closedCount" style="color:var(--muted);">—</div>
+      <div class="stat-sub">Results available</div>
+    </div>
+  </div>
+
+  <h2>Open for Voting</h2>
+  <div class="election-grid mb-4" id="openElections">
+    <p class="text-muted text-sm">Loading...</p>
+  </div>
+
+  <h2>Closed Elections</h2>
+  <div class="election-grid" id="closedElections"></div>
+</div>
+
+<!-- Apply as Candidate Modal -->
+<div class="modal-overlay" id="applyModal">
+  <div class="modal">
+    <h2>Apply as Candidate</h2>
+    <p class="text-muted text-sm mb-3">Election: <strong id="applyElectionName" style="color:var(--accent);"></strong></p>
+    <input type="hidden" id="applyElectionId"/>
+
+    <div class="alert alert-info" style="margin-bottom:16px;">
+      Your application will be reviewed by the admin before you appear on the ballot.
+    </div>
+
+    <div class="form-group">
+      <label>Full Name <span style="color:var(--red);">*</span></label>
+      <input id="applyName" type="text" placeholder="Your full name as it will appear on the ballot"/>
+    </div>
+    <div class="form-group">
+      <label>Party / Affiliation <span style="color:var(--red);">*</span></label>
+      <input id="applyParty" type="text" placeholder="e.g. Progressive Students Alliance or Independent"/>
+    </div>
+    <div class="form-group">
+      <label>Bio / Background</label>
+      <textarea id="applyBio" rows="3" placeholder="Briefly describe your background, experience, and achievements relevant to this position..."></textarea>
+    </div>
+    <div class="form-group">
+      <label>Campaign Manifesto <span style="color:var(--red);">*</span></label>
+      <textarea id="applyManifesto" rows="4" placeholder="Describe your goals, plans, and what you will do if elected. Be specific about the changes you want to make..."></textarea>
+    </div>
+    <div class="form-group">
+      <label style="display:flex;align-items:flex-start;gap:10px;margin:0;cursor:pointer;font-size:0.85rem;color:var(--muted);">
+        <input id="applyAgree" type="checkbox" style="width:auto;margin-top:3px;"/>
+        I confirm all information provided is accurate and I meet the eligibility requirements for this election.
+      </label>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeApplyModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitApplication()">Submit Application</button>
+    </div>
+    <div class="error-msg" id="applyError"></div>
+    <div class="success-msg" id="applySuccess">Application submitted! The admin will review it shortly.</div>
+  </div>
+</div>
+
+<script>
+  let currentUserId = 0;
+  let currentRole = '';
+  let positions = [];
+
+  function buildNav() {
+    currentUserId = parseInt(localStorage.getItem('userId') || sessionStorage.getItem('userId') || '0');
+    currentRole = localStorage.getItem('role') || sessionStorage.getItem('role') || 'Voter';
+    const nav = document.getElementById('navLinks');
+    if (currentRole === 'Candidate') {
+      nav.innerHTML = `
+        <a href="candidate-dashboard.html">Dashboard</a>
+        <a href="voter-dashboard.html" class="active">Elections</a>
+        <a href="results.html">Results</a>
+        <a href="candidate-profile.html">My Profile</a>
+        <a href="login.html" onclick="localStorage.clear();sessionStorage.clear()">Sign out</a>`;
+      document.getElementById('userBadge').innerHTML = '<span class="badge" style="background:#F5F3FF;color:#5B21B6;border:1px solid #DDD6FE;">Candidate</span>';
+    } else {
+      nav.innerHTML = `
+        <a href="voter-dashboard.html" class="active">My Elections</a>
+        <a href="results.html">Results</a>
+        <a href="login.html" onclick="localStorage.clear();sessionStorage.clear()">Sign out</a>`;
+    }
+  }
+
+  async function loadDashboard() {
+    buildNav();
+
+    // load user name from voters list
+    if (currentUserId) {
+      try {
+        const vRes = await fetch('/api/admin/voters');
+        const voters = await vRes.json();
+        const me = voters.find(v => v.userId === currentUserId);
+        if (me) document.getElementById('userName').textContent = ((me.firstName ?? '') + ' ' + (me.lastName ?? '')).trim() || 'User';
+      } catch(e) {}
+    }
+
+    // load positions for apply modal
+    try {
+      const pRes = await fetch('/api/admin/positions');
+      positions = await pRes.json();
+    } catch(e) {}
+
+    const [eRes, vRes] = await Promise.all([
+      fetch('/api/elections'),
+      currentUserId ? fetch(`/api/votes/byvoter/${currentUserId}`) : Promise.resolve({ json: () => [] })
+    ]);
+    const elections = await eRes.json();
+    const voted = await vRes.json();
+
+    const open = elections.filter(e => e.status === 'Open');
+    const closed = elections.filter(e => e.status !== 'Open');
+
+    document.getElementById('activeCount').textContent = open.length;
+    document.getElementById('closedCount').textContent = closed.length;
+    document.getElementById('votesCast').textContent = Array.isArray(voted) ? voted.length : 0;
+
+    // get candidate counts per election
+    let allCandidates = [];
+    try { const cRes = await fetch('/api/admin/candidates'); allCandidates = await cRes.json(); } catch(e) {}
+
+    const openWrap = document.getElementById('openElections');
+    openWrap.innerHTML = '';
+    if (!open.length) {
+      openWrap.innerHTML = '<p class="text-muted text-sm">No active elections at the moment.</p>';
+    } else {
+      open.forEach(e => {
+        const hasVoted = Array.isArray(voted) && voted.some(v => v.electionId === e.id);
+        const candCount = allCandidates.filter(c => c.electionId === e.id && c.status === 'Approved').length;
+        const div = document.createElement('div');
+        div.className = 'election-card' + (hasVoted ? ' voted' : '');
+        div.innerHTML = `
+          <div class="election-meta">
+            <span class="badge badge-active">Active</span>
+            <span class="cand-count">${candCount} candidate${candCount !== 1 ? 's' : ''}</span>
+          </div>
+          <div class="election-title">${e.title}</div>
+          <div class="election-desc">${e.description || ''}</div>
+          <div class="deadline">Closes: <span>${new Date(e.endDate).toLocaleString()}</span></div>
+          <div class="election-footer">
+            <div class="text-sm text-muted">${hasVoted ? '<span class="voted-check">&#10003; Voted</span>' : 'Not voted yet'}</div>
+            <div class="flex gap-2">
+              <button class="btn btn-secondary btn-sm" onclick="openApply(${e.id}, '${e.title.replace(/'/g, "\\'")}')">Apply as Candidate</button>
+              ${hasVoted
+                ? `<a href="results.html?electionId=${e.id}" class="btn btn-success btn-sm">View results</a>`
+                : `<a href="cast-vote.html?electionId=${e.id}" class="btn btn-primary btn-sm">Vote now</a>`}
+            </div>
+          </div>`;
+        openWrap.appendChild(div);
+      });
+    }
+
+    const closedWrap = document.getElementById('closedElections');
+    closedWrap.innerHTML = '';
+    if (!closed.length) {
+      closedWrap.innerHTML = '<p class="text-muted text-sm">No closed elections yet.</p>';
+    } else {
+      closed.forEach(e => {
+        const div = document.createElement('div');
+        div.className = 'election-card';
+        div.style.opacity = '0.75';
+        div.innerHTML = `
+          <div class="election-meta"><span class="badge badge-closed">Closed</span></div>
+          <div class="election-title">${e.title}</div>
+          <div class="election-desc">${e.description || ''}</div>
+          <div class="election-footer">
+            <div class="text-sm text-muted">Voting closed</div>
+            <a href="results.html?electionId=${e.id}" class="btn btn-secondary btn-sm">View results</a>
+          </div>`;
+        closedWrap.appendChild(div);
+      });
+    }
+  }
+
+  function openApply(electionId, electionName) {
+    if (!currentUserId) { location.href = 'login.html'; return; }
+    document.getElementById('applyElectionId').value = electionId;
+    document.getElementById('applyElectionName').textContent = electionName;
+    document.getElementById('applyError').style.display = 'none';
+    document.getElementById('applySuccess').style.display = 'none';
+    // pre-fill name if we can
+    const userName = document.getElementById('userName').textContent;
+    if (userName && userName !== '—') document.getElementById('applyName').value = userName;
+    document.getElementById('applyModal').classList.add('open');
+  }
+
+  function closeApplyModal() {
+    document.getElementById('applyModal').classList.remove('open');
+    // reset form
+    ['applyName','applyParty','applyBio','applyManifesto'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('applyPosition').value = '';
+    document.getElementById('applyAgree').checked = false;
+  }
+
+  async function submitApplication() {
+    const errEl = document.getElementById('applyError');
+    const sucEl = document.getElementById('applySuccess');
+    errEl.style.display = 'none';
+
+    const name = document.getElementById('applyName').value.trim();
+    const party = document.getElementById('applyParty').value.trim();
+    const positionId = parseInt(document.getElementById('applyPosition').value) || 0;
+    const bio = document.getElementById('applyBio').value.trim();
+    const manifesto = document.getElementById('applyManifesto').value.trim();
+    const electionId = parseInt(document.getElementById('applyElectionId').value);
+    const agreed = document.getElementById('applyAgree').checked;
+
+    if (!name) { errEl.textContent = 'Please enter your full name.'; errEl.style.display = 'block'; return; }
+    if (!party) { errEl.textContent = 'Please enter your party or affiliation.'; errEl.style.display = 'block'; return; }
+    if (!positionId) { errEl.textContent = 'Please select the position you are applying for.'; errEl.style.display = 'block'; return; }
+        if (!manifesto) { errEl.textContent = 'Please write your campaign manifesto.'; errEl.style.display = 'block'; return; }
+    if (!agreed) { errEl.textContent = 'Please confirm the accuracy of your information.'; errEl.style.display = 'block'; return; }
+
+    const payload = {
+      name, party, bio, manifesto,
+      electionId,
+      userId: currentUserId,
+      status: 'Pending'
+    };
+
+    const res = await fetch('/api/admin/candidates', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) {
+      errEl.textContent = 'Submission failed. Please try again.'; errEl.style.display = 'block'; return;
+    }
+
+    sucEl.style.display = 'block';
+    setTimeout(() => closeApplyModal(), 2500);
+  }
+
+  document.getElementById('applyModal').addEventListener('click', function(e) {
+    if (e.target === this) closeApplyModal();
+  });
+
+  loadDashboard();
+</script>
+</body>
+</html>

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>VoteMS — Voting Management System</title>
+  <link rel="stylesheet" href="styles.css?v=4"/>
+  <style>
+    nav { background: #F0F2F5; border-bottom-color: #D1D5DB; }
+    nav .nav-links a, nav .nav-links button { color: var(--muted); }
+    nav .nav-links a:hover, nav .nav-links button:hover { background: var(--bg3); color: var(--text); }
+    nav .nav-links a.active { background: #EFF6FF; color: var(--accent); }
+    .hero { text-align: center; padding: 80px 20px 60px; max-width: 680px; margin: 0 auto; }
+    .hero-badge { display: inline-flex; align-items: center; gap: 6px; background: #EFF6FF; color: var(--accent); border: 1px solid #BFDBFE; border-radius: 20px; padding: 5px 14px; font-size: 0.78rem; font-weight: 600; margin-bottom: 24px; }
+    .hero h1 { font-size: 2.8rem; margin-bottom: 16px; line-height: 1.15; }
+    .hero p { color: var(--muted); font-size: 1.05rem; max-width: 500px; margin: 0 auto 36px; }
+    .hero-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .section { max-width: 1100px; margin: 0 auto; padding: 0 40px 60px; }
+    .election-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 18px; }
+    .election-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 22px; transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s; display: flex; flex-direction: column; box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
+    .election-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(37,99,235,0.1); }
+    .election-meta { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+    .election-title { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; margin-bottom: 6px; }
+    .election-desc { font-size: 0.85rem; color: var(--muted); line-height: 1.5; margin-bottom: 12px; flex: 1; }
+    .election-deadline { font-size: 0.78rem; color: var(--muted); margin-bottom: 14px; }
+    .election-deadline span { color: var(--amber); font-weight: 500; }
+    .election-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 14px; border-top: 1px solid var(--border); gap: 8px; flex-wrap: wrap; margin-top: auto; }
+    .election-actions { display: flex; gap: 8px; }
+    .stats-bar { background: var(--bg2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 28px 40px; margin-bottom: 60px; }
+    .stats-bar-inner { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 20px; }
+    .stats-bar-item { text-align: center; }
+    .stats-bar-value { font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; }
+    .stats-bar-label { font-size: 0.8rem; color: var(--muted); margin-top: 4px; }
+    .how-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 18px; margin-bottom: 60px; }
+    .how-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; text-align: center; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+    .how-num { width: 36px; height: 36px; border-radius: 50%; background: #EFF6FF; color: var(--accent); font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.95rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; }
+    .how-title { font-family: 'Syne', sans-serif; font-size: 0.95rem; font-weight: 700; margin-bottom: 6px; }
+    .how-desc { font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
+    .how-step { font-family: 'Syne', sans-serif; font-size: 0.68rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+    .site-footer { border-top: 1px solid var(--border); padding: 28px 40px; text-align: center; color: var(--muted); font-size: 0.82rem; background: var(--bg2); }
+    @media (max-width: 768px) { .hero h1 { font-size: 1.9rem; } .section { padding: 0 16px 40px; } .stats-bar { padding: 20px 16px; } }
+  </style>
+</head>
+<body>
+<nav>
+  <a href="index.html" class="nav-logo"><div class="dot"></div> VoteMS</a>
+  <div class="nav-links">
+    <a href="#elections">Elections</a>
+    <a href="#how">How it works</a>
+    <button class="btn btn-primary btn-sm" onclick="location.href='Pages/login.html'">Sign in</button>
+    <a href="Pages/register.html" class="btn btn-secondary btn-sm">Register</a>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="hero-badge">Secure &amp; Transparent Voting</div>
+  <h1>Your Vote,<br/>Your Voice.</h1>
+  <p>A secure and transparent online voting platform. Browse active elections, cast your vote, or run as a candidate.</p>
+  <div class="hero-btns">
+    <button class="btn btn-primary btn-lg" onclick="document.getElementById('elections').scrollIntoView({behavior:'smooth'})">View Elections</button>
+    <a href="Pages/register.html" class="btn btn-secondary btn-lg">Create Account</a>
+  </div>
+</div>
+
+<div class="stats-bar">
+  <div class="stats-bar-inner">
+    <div class="stats-bar-item"><div class="stats-bar-value" id="statActive" style="color:var(--accent);">—</div><div class="stats-bar-label">Active Elections</div></div>
+    <div class="stats-bar-item"><div class="stats-bar-value" id="statVoters" style="color:var(--green);">—</div><div class="stats-bar-label">Registered Voters</div></div>
+    <div class="stats-bar-item"><div class="stats-bar-value" id="statCandidates" style="color:var(--amber);">—</div><div class="stats-bar-label">Candidates Running</div></div>
+    <div class="stats-bar-item"><div class="stats-bar-value" id="statVotes" style="color:var(--text);">—</div><div class="stats-bar-label">Votes Cast</div></div>
+  </div>
+</div>
+
+<div class="section" id="elections">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+    <div><h2 style="margin-bottom:4px;">Active Elections</h2><p class="subtitle" style="margin:0;">Open for voting right now</p></div>
+  </div>
+  <div class="election-grid mb-4" id="openGrid"><div class="text-muted text-sm" style="padding:20px 0;">Loading elections...</div></div>
+  <h2 style="margin-bottom:16px;">Closed Elections</h2>
+  <div class="election-grid" id="closedGrid"></div>
+</div>
+
+<div class="section" id="how">
+  <h2 style="margin-bottom:6px;">How it works</h2>
+  <p class="subtitle">Three simple steps to participate</p>
+  <div class="how-grid">
+    <div class="how-card"><div class="how-step">Step 1</div><div class="how-num">1</div><div class="how-title">Create an Account</div><div class="how-desc">Register as a Voter or Candidate using your National ID and personal details.</div></div>
+    <div class="how-card"><div class="how-step">Step 2</div><div class="how-num">2</div><div class="how-title">Browse &amp; Vote</div><div class="how-desc">View active elections, read candidate profiles, and cast your secure vote.</div></div>
+    <div class="how-card"><div class="how-step">Step 3</div><div class="how-num">3</div><div class="how-title">See Results</div><div class="how-desc">Once an election closes, results are published instantly for everyone to view.</div></div>
+    <div class="how-card"><div class="how-step">Run for office</div><div class="how-num">4</div><div class="how-title">Apply as Candidate</div><div class="how-desc">Register as a Candidate, fill in your credentials and manifesto, and await admin approval.</div></div>
+  </div>
+</div>
+
+<div class="site-footer">VoteMS &mdash; Voting Management System &nbsp;&middot;&nbsp; Secure &nbsp;&middot;&nbsp; Transparent &nbsp;&middot;&nbsp; Fair</div>
+
+<script>
+  async function loadHomepage() {
+    try {
+      const [eRes, statsRes] = await Promise.all([fetch('/api/elections'), fetch('/api/admin/stats')]);
+      const elections = await eRes.json();
+      const stats = await statsRes.json();
+
+      document.getElementById('statActive').textContent = stats.activeElections;
+      document.getElementById('statVoters').textContent = stats.totalVoters;
+      document.getElementById('statCandidates').textContent = stats.totalCandidates;
+      document.getElementById('statVotes').textContent = stats.totalVotes;
+
+      const openEl = elections.filter(e => e.status === 'Open');
+      const closedEl = elections.filter(e => e.status !== 'Open');
+
+      const openGrid = document.getElementById('openGrid');
+      openGrid.innerHTML = '';
+      if (!openEl.length) {
+        openGrid.innerHTML = '<p class="text-muted text-sm" style="padding:20px 0;">No active elections at the moment.</p>';
+      } else {
+        openEl.forEach(e => {
+          const div = document.createElement('div');
+          div.className = 'election-card';
+          div.innerHTML = `
+            <div class="election-meta"><span class="badge badge-active">Active</span></div>
+            <div class="election-title">${e.title}</div>
+            <div class="election-desc">${e.description ?? ''}</div>
+            <div class="election-deadline">Closes: <span>${new Date(e.endDate).toLocaleString()}</span></div>
+            <div class="election-footer">
+              <div class="text-sm text-muted">Open for voting</div>
+              <div class="election-actions">
+                <a href="Pages/register.html?role=candidate&electionId=${e.id}" class="btn btn-secondary btn-sm">Apply as Candidate</a>
+                <a href="Pages/login.html" class="btn btn-primary btn-sm">Vote now</a>
+              </div>
+            </div>`;
+          openGrid.appendChild(div);
+        });
+      }
+
+      const closedGrid = document.getElementById('closedGrid');
+      closedGrid.innerHTML = '';
+      if (!closedEl.length) {
+        closedGrid.innerHTML = '<p class="text-muted text-sm" style="padding:20px 0;">No closed elections yet.</p>';
+      } else {
+        closedEl.forEach(e => {
+          const div = document.createElement('div');
+          div.className = 'election-card';
+          div.style.opacity = '0.7';
+          div.innerHTML = `
+            <div class="election-meta"><span class="badge badge-closed">Closed</span></div>
+            <div class="election-title">${e.title}</div>
+            <div class="election-desc">${e.description ?? ''}</div>
+            <div class="election-footer">
+              <div class="text-sm text-muted">Voting closed</div>
+              <a href="Pages/results.html?electionId=${e.id}" class="btn btn-secondary btn-sm">View results</a>
+            </div>`;
+          closedGrid.appendChild(div);
+        });
+      }
+    } catch(err) { console.error('Could not load homepage data', err); }
+  }
+  loadHomepage();
+</script>
+</body>
+</html>

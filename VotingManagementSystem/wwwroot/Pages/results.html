@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Results — VoteMS</title>
+  <link rel="stylesheet" href="../styles.css?v=4"/>
+  <style>
+    .result-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; margin-bottom: 12px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+    .result-card.winner { border-color: var(--green); background: #F0FDF4; }
+    .rank { font-family: 'Syne', sans-serif; font-size: 1.3rem; font-weight: 800; min-width: 34px; text-align: center; color: var(--muted); }
+    .rank.first { color: var(--amber); }
+    .result-initials { width: 44px; height: 44px; border-radius: 10px; background: #EFF6FF; color: var(--accent); font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.95rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid #BFDBFE; }
+    .result-info { flex: 1; min-width: 0; }
+    .result-name { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; margin-bottom: 2px; }
+    .result-party { font-size: 0.8rem; color: var(--muted); margin-bottom: 8px; }
+    .result-votes { font-family: 'Syne', sans-serif; font-size: 1.2rem; font-weight: 800; min-width: 80px; text-align: right; }
+    .result-pct { font-size: 0.78rem; color: var(--muted); text-align: right; }
+    .winner-label { font-size: 0.72rem; font-weight: 700; color: var(--green); text-transform: uppercase; letter-spacing: 0.06em; margin-left: 8px; }
+    .election-selector { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
+    .election-tab { padding: 7px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 500; cursor: pointer; border: 1px solid var(--border); background: var(--card); color: var(--muted); transition: all 0.15s; }
+    .election-tab.active { background: var(--accent); border-color: var(--accent); color: white; }
+    .election-tab:hover:not(.active) { border-color: var(--accent); color: var(--text); background: #EFF6FF; }
+    .empty-state { text-align: center; padding: 48px 20px; color: var(--muted); }
+    /* voter/candidate nav layout */
+    .voter-layout { display: block; }
+    .voter-layout nav { display: flex; }
+    .voter-layout .content { max-width: 800px; margin: 0 auto; padding: 40px; }
+    /* admin sidebar layout */
+    .admin-layout nav { display: none; }
+    .admin-layout .content { margin-left: 230px; padding: 36px 40px; max-width: none; }
+  </style>
+</head>
+<body class="voter-layout">
+
+<!-- Sidebar (admin only — hidden by default) -->
+<aside class="sidebar" id="adminSidebar" style="display:none;">
+  <div class="sidebar-logo"><div class="dot"></div> VoteMS</div>
+  <div class="sidebar-section">Overview</div>
+  <a href="admin-dashboard.html" class="sidebar-link">Dashboard</a>
+  <a href="admin-elections.html" class="sidebar-link">Elections</a>
+  <a href="admin-voters.html" class="sidebar-link">Voters</a>
+  <a href="admin-candidates.html" class="sidebar-link">Candidates</a>
+  <div class="sidebar-section">Reports</div>
+  <a href="results.html?admin=1" class="sidebar-link active">Results</a>
+  <a href="admin-reports.html" class="sidebar-link">Reports</a>
+  <div class="sidebar-footer">
+    <div style="font-size:0.82rem;color:var(--muted);padding:0 12px 10px;">Admin</div>
+    <a href="login.html" class="sidebar-link" onclick="localStorage.clear();sessionStorage.clear()">Sign out</a>
+  </div>
+</aside>
+
+<!-- Top nav (voter/candidate only) -->
+<nav id="mainNav">
+  <a href="../index.html" class="nav-logo"><div class="dot"></div> VoteMS</a>
+  <div class="nav-links" id="navLinks"></div>
+</nav>
+
+<div class="content">
+  <div class="flex justify-between items-center mb-4">
+    <div>
+      <h1>Election Results</h1>
+      <p class="subtitle">Live results for all elections</p>
+    </div>
+  </div>
+
+  <!-- Stats (admin only) -->
+  <div class="stats-grid mb-4" id="adminStats" style="display:none;">
+    <div class="stat-card"><div class="stat-label">Total Votes Cast</div><div class="stat-value" id="statVotes" style="color:var(--accent);">—</div></div>
+    <div class="stat-card"><div class="stat-label">Total Elections</div><div class="stat-value" id="statElections" style="color:var(--green);">—</div></div>
+    <div class="stat-card"><div class="stat-label">Total Candidates</div><div class="stat-value" id="statCandidates" style="color:var(--amber);">—</div></div>
+    <div class="stat-card"><div class="stat-label">Registered Voters</div><div class="stat-value" id="statVoters">—</div></div>
+  </div>
+
+  <div class="election-selector" id="electionTabs"></div>
+
+  <div class="card mb-4" id="summaryCard" style="display:none;">
+    <div class="flex justify-between items-center flex-wrap gap-3">
+      <div>
+        <h2 style="margin-bottom:6px;" id="summaryTitle">—</h2>
+        <span class="badge" id="summaryBadge">—</span>
+      </div>
+      <div class="stat-card" style="margin:0;padding:14px 20px;min-width:120px;">
+        <div class="stat-label">Total votes</div>
+        <div class="stat-value" id="summaryTotal" style="font-size:1.6rem;color:var(--accent);">—</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="resultsList"></div>
+
+  <div id="emptyState" class="empty-state" style="display:none;">
+    <p style="font-size:1rem;font-weight:600;margin-bottom:6px;">No votes yet</p>
+    <p class="text-sm">No votes have been cast in this election yet.</p>
+  </div>
+
+  <div class="mt-3">
+    <a id="backBtn" href="voter-dashboard.html" class="btn btn-secondary">Back to elections</a>
+  </div>
+</div>
+
+<script>
+  let elections = [];
+  const barColors = ['green', '', 'purple', 'amber', ''];
+
+  function init() {
+    const role = localStorage.getItem('role') || sessionStorage.getItem('role') || '';
+    const params = new URLSearchParams(location.search);
+    const isAdmin = role === 'Admin' || params.get('admin') === '1';
+
+    if (isAdmin) {
+      // Switch to admin sidebar layout
+      document.body.className = 'admin-layout';
+      document.getElementById('adminSidebar').style.display = 'flex';
+      document.getElementById('adminStats').style.display = 'grid';
+      document.getElementById('backBtn').href = 'admin-dashboard.html';
+
+      // Load stats
+      fetch('/api/admin/stats').then(r => r.json()).then(s => {
+        document.getElementById('statVotes').textContent = s.totalVotes;
+        document.getElementById('statElections').textContent = s.totalElections;
+        document.getElementById('statCandidates').textContent = s.totalCandidates;
+        document.getElementById('statVoters').textContent = s.totalVoters;
+      });
+    } else {
+      // Voter / Candidate top nav
+      const navLinks = document.getElementById('navLinks');
+      if (role === 'Candidate') {
+        navLinks.innerHTML = `
+          <a href="candidate-dashboard.html">Dashboard</a>
+          <a href="voter-dashboard.html">Elections</a>
+          <a href="results.html" class="active">Results</a>
+          <a href="candidate-profile.html">My Profile</a>
+          <a href="cast-vote.html" class="btn btn-primary btn-sm">Vote</a>
+          <a href="login.html" onclick="localStorage.clear();sessionStorage.clear()">Sign out</a>`;
+        document.getElementById('backBtn').href = 'candidate-dashboard.html';
+      } else {
+        navLinks.innerHTML = `
+          <a href="voter-dashboard.html">Elections</a>
+          <a href="results.html" class="active">Results</a>
+          <a href="login.html" onclick="localStorage.clear();sessionStorage.clear()">Sign out</a>`;
+      }
+    }
+  }
+
+  async function loadElections() {
+    const res = await fetch('/api/elections');
+    elections = await res.json();
+    const tabs = document.getElementById('electionTabs');
+    tabs.innerHTML = '';
+    const params = new URLSearchParams(location.search);
+    const preselect = parseInt(params.get('electionId')) || 0;
+
+    if (!elections.length) {
+      tabs.innerHTML = '<p class="text-muted text-sm">No elections found.</p>';
+      return;
+    }
+
+    elections.forEach((e, i) => {
+      const btn = document.createElement('div');
+      btn.className = 'election-tab' + ((!preselect && i === 0) || e.id === preselect ? ' active' : '');
+      btn.textContent = e.title;
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.election-tab').forEach(t => t.classList.remove('active'));
+        btn.classList.add('active');
+        loadResults(e.id);
+      });
+      tabs.appendChild(btn);
+    });
+
+    loadResults(preselect || elections[0].id);
+  }
+
+  async function loadResults(electionId) {
+    const election = elections.find(e => e.id === electionId);
+    const res = await fetch(`/api/elections/${electionId}/results`);
+    const results = await res.json();
+
+    document.getElementById('summaryCard').style.display = '';
+    document.getElementById('summaryTitle').textContent = election?.title ?? '';
+
+    const badge = document.getElementById('summaryBadge');
+    if (election?.status === 'Open') {
+      badge.className = 'badge badge-active'; badge.textContent = 'Active — Live results';
+    } else {
+      badge.className = 'badge badge-closed'; badge.textContent = 'Closed — ' + new Date(election?.endDate).toLocaleDateString();
+    }
+
+    const total = results.reduce((s, r) => s + r.votes, 0);
+    document.getElementById('summaryTotal').textContent = total;
+
+    const list = document.getElementById('resultsList');
+    list.innerHTML = '';
+
+    if (!results.length || total === 0) {
+      document.getElementById('emptyState').style.display = '';
+      return;
+    }
+    document.getElementById('emptyState').style.display = 'none';
+
+    results.forEach((r, i) => {
+      const isWinner = i === 0 && election?.status !== 'Open';
+      const initials = r.name.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+      const div = document.createElement('div');
+      div.className = 'result-card' + (isWinner ? ' winner' : '');
+      div.innerHTML = `
+        <div class="rank ${i === 0 ? 'first' : ''}">${i + 1}</div>
+        <div class="result-initials">${initials}</div>
+        <div class="result-info">
+          <div class="result-name">${r.name}${isWinner ? '<span class="winner-label">Winner</span>' : ''}</div>
+          <div class="result-party">${r.party ?? ''}</div>
+          <div class="progress-wrap">
+            <div class="progress-bar"><div class="progress-fill ${barColors[i] || ''}" style="width:${r.percentage}%"></div></div>
+          </div>
+        </div>
+        <div>
+          <div class="result-votes" style="${isWinner ? 'color:var(--green);' : ''}">${r.votes}</div>
+          <div class="result-pct">${r.percentage}%</div>
+        </div>`;
+      list.appendChild(div);
+    });
+  }
+
+  init();
+  loadElections();
+</script>
+</body>
+</html>

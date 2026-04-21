@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Manage Voters — VoteMS Admin</title>
+  <link rel="stylesheet" href="../styles.css?v=4"/>
+  <style>.search-bar { display:flex; gap:10px; margin-bottom:20px; } .search-bar input { flex:1; }</style>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="sidebar-logo"><div class="dot"></div> VoteMS</div>
+  <div class="sidebar-section">Overview</div>
+  <a href="admin-dashboard.html" class="sidebar-link">Dashboard</a>
+  <a href="admin-elections.html" class="sidebar-link">Elections</a>
+  <a href="admin-voters.html" class="sidebar-link active">Voters</a>
+  <a href="admin-candidates.html" class="sidebar-link">Candidates</a>
+  <div class="sidebar-section">Reports</div>
+  <a href="results.html?admin=1" class="sidebar-link">Results</a>
+  <a href="admin-reports.html" class="sidebar-link">Reports</a>
+  <div class="sidebar-footer">
+    <div style="font-size:0.82rem;color:var(--muted);padding:0 12px 10px;">Admin</div>
+    <a href="login.html" class="sidebar-link" onclick="localStorage.clear();sessionStorage.clear()">Sign out</a>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="flex justify-between items-center mb-4">
+    <div><h1>Manage Voters</h1><p class="subtitle">View and manage all registered voter accounts</p></div>
+  </div>
+  <div class="stats-grid mb-4">
+    <div class="stat-card"><div class="stat-label">Total Registered</div><div class="stat-value" id="totalVoters" style="color:var(--accent);">—</div><div class="stat-sub">All time</div></div>
+  </div>
+  <div class="search-bar">
+    <input type="text" id="searchInput" placeholder="Search by name or National ID..." oninput="onSearch()"/>
+  </div>
+  <div class="table-wrap mb-2">
+    <table>
+      <thead><tr><th>Name</th><th>National ID</th><th>Phone</th><th>Registered</th><th>Actions</th></tr></thead>
+      <tbody id="votersBody"></tbody>
+    </table>
+  </div>
+  <div class="pagination" id="pager"></div>
+</main>
+
+<!-- Edit Modal -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <h2>Edit Voter</h2>
+    <input type="hidden" id="editId"/>
+    <div class="grid-2">
+      <div class="form-group"><label>First Name</label><input id="editFirst" type="text"/></div>
+      <div class="form-group"><label>Last Name</label><input id="editLast" type="text"/></div>
+    </div>
+    <div class="form-group"><label>National ID</label><input id="editNid" type="text"/></div>
+    <div class="form-group"><label>Date of Birth</label><input id="editDob" type="date"/></div>
+    <div class="form-group"><label>Gender</label>
+      <select id="editGender"><option value="">—</option><option>Male</option><option>Female</option><option>Other</option></select>
+    </div>
+    <div class="form-group"><label>Address</label><input id="editAddress" type="text"/></div>
+    <div class="form-group"><label>Phone</label><input id="editPhone" type="text"/></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('editModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEdit()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const PAGE_SIZE = 3;
+  let allVoters = [], filtered = [], currentPage = 1;
+
+  document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); }));
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+  function buildPager() {
+    const container = document.getElementById('pager');
+    container.innerHTML = '';
+    const total = filtered.length;
+    const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+
+    const prev = document.createElement('button');
+    prev.className = 'pg-btn pg-arrow'; prev.innerHTML = '&#8249;';
+    prev.disabled = currentPage === 1;
+    prev.onclick = () => { if (currentPage > 1) { currentPage--; renderTable(); } };
+    container.appendChild(prev);
+
+    for (let i = 1; i <= totalPages; i++) {
+      const btn = document.createElement('button');
+      btn.className = 'pg-btn' + (i === currentPage ? ' active' : '');
+      btn.textContent = i;
+      btn.onclick = () => { currentPage = i; renderTable(); };
+      container.appendChild(btn);
+    }
+
+    const next = document.createElement('button');
+    next.className = 'pg-btn pg-arrow-next'; next.innerHTML = '&#8250;';
+    next.disabled = currentPage === totalPages;
+    next.onclick = () => { if (currentPage < totalPages) { currentPage++; renderTable(); } };
+    container.appendChild(next);
+
+    const info = document.createElement('span');
+    info.className = 'pg-info';
+    const start = total === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1;
+    const end = Math.min(currentPage * PAGE_SIZE, total);
+    info.textContent = total === 0 ? 'No records' : `${start}–${end} of ${total}`;
+    container.appendChild(info);
+  }
+
+  function renderTable() {
+    const slice = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+    const tbody = document.getElementById('votersBody');
+    tbody.innerHTML = '';
+    if (!filtered.length) {
+      tbody.innerHTML = '<tr><td colspan="5" class="text-muted" style="text-align:center;padding:20px;">No voters found</td></tr>';
+    } else {
+      slice.forEach(v => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${v.firstName ?? ''} ${v.lastName ?? ''}</strong></td>
+          <td class="text-muted" style="font-size:0.82rem;">${v.nationalId}</td>
+          <td class="text-muted">${v.phone ?? '—'}</td>
+          <td class="text-muted">${new Date(v.createdAt).toLocaleDateString()}</td>
+          <td><div style="display:flex;gap:6px;">
+            <button class="btn btn-secondary btn-sm" onclick="openEdit(${v.id})">Edit</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteVoter(${v.id})">Remove</button>
+          </div></td>`;
+        tbody.appendChild(tr);
+      });
+    }
+    buildPager();
+  }
+
+  function onSearch() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    filtered = allVoters.filter(v =>
+      (v.firstName + ' ' + v.lastName).toLowerCase().includes(q) ||
+      (v.nationalId ?? '').toLowerCase().includes(q)
+    );
+    currentPage = 1;
+    renderTable();
+  }
+
+  async function loadVoters() {
+    const res = await fetch('/api/admin/voters');
+    allVoters = await res.json();
+    filtered = [...allVoters];
+    document.getElementById('totalVoters').textContent = allVoters.length;
+    renderTable();
+  }
+
+  async function openEdit(id) {
+    const v = allVoters.find(x => x.id === id); if (!v) return;
+    document.getElementById('editId').value = v.id;
+    document.getElementById('editFirst').value = v.firstName ?? '';
+    document.getElementById('editLast').value = v.lastName ?? '';
+    document.getElementById('editNid').value = v.nationalId ?? '';
+    document.getElementById('editDob').value = v.dateOfBirth ? v.dateOfBirth.split('T')[0] : '';
+    document.getElementById('editGender').value = v.gender ?? '';
+    document.getElementById('editAddress').value = v.address ?? '';
+    document.getElementById('editPhone').value = v.phone ?? '';
+    document.getElementById('editModal').classList.add('open');
+  }
+
+  async function saveEdit() {
+    const id = document.getElementById('editId').value;
+    const payload = { firstName: document.getElementById('editFirst').value, lastName: document.getElementById('editLast').value, nationalId: document.getElementById('editNid').value, dateOfBirth: document.getElementById('editDob').value, gender: document.getElementById('editGender').value, address: document.getElementById('editAddress').value, phone: document.getElementById('editPhone').value };
+    await fetch(`/api/admin/voters/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    closeModal('editModal'); await loadVoters();
+  }
+
+  async function deleteVoter(id) {
+    if (!confirm('Remove this voter? This will also delete their user account.')) return;
+    await fetch(`/api/admin/voters/${id}`, { method: 'DELETE' });
+    await loadVoters();
+  }
+
+  loadVoters();
+</script>
+</body>
+</html>

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Profile — VoteMS</title>
+  <link rel="stylesheet" href="../styles.css?v=4"/>
+  <style>
+    .profile-initials { width: 80px; height: 80px; border-radius: 18px; background: #EFF6FF; color: var(--accent); font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.8rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 2px solid #BFDBFE; }
+    .section-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 26px; margin-bottom: 18px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+    .section-card h2 { margin-bottom: 18px; }
+    .success-msg { color: var(--green); font-size: 0.85rem; margin-top: 10px; display: none; }
+  </style>
+</head>
+<body>
+<nav>
+  <a href="../index.html" class="nav-logo"><div class="dot"></div> VoteMS</a>
+  <div class="nav-links">
+    <a href="candidate-dashboard.html">Dashboard</a>
+    <a href="candidate-profile.html" class="active">My Profile</a>
+    <a href="results.html">Results</a>
+    <a href="login.html" onclick="localStorage.clear()">Sign out</a>
+  </div>
+</nav>
+
+<div class="page" style="max-width:760px;">
+  <h1>My Profile</h1>
+  <p class="subtitle">Manage your candidate information visible to voters</p>
+
+  <div class="alert alert-info">
+    Your profile is visible to all voters. Keep it accurate and up to date.
+  </div>
+
+  <!-- Identity -->
+  <div class="section-card">
+    <h2>Identity</h2>
+    <div class="flex gap-4 items-center mb-3">
+      <div class="profile-initials" id="profileInitials">—</div>
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700;" id="profileName">Loading...</div>
+        <div style="font-size:0.82rem;color:var(--muted);margin-top:2px;" id="profileStatus">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Personal Details -->
+  <div class="section-card">
+    <h2>Personal Details</h2>
+    <div class="grid-2">
+      <div class="form-group"><label>First Name</label><input id="pFirstName" type="text"/></div>
+      <div class="form-group"><label>Last Name</label><input id="pLastName" type="text"/></div>
+    </div>
+    <div class="form-group"><label>Phone / Contact</label><input id="pPhone" type="text" placeholder="+250 7XX XXX XXX"/></div>
+    <div class="form-group"><label>Address</label><input id="pAddress" type="text" placeholder="Your address"/></div>
+  </div>
+
+  <!-- Campaign Info -->
+  <div class="section-card">
+    <h2>Campaign Information</h2>
+    <div class="form-group"><label>Party / Affiliation</label><input id="pParty" type="text" placeholder="e.g. Progressive Students Alliance"/></div>
+    <div class="form-group"><label>Bio</label><textarea id="pBio" rows="3" placeholder="Tell voters about your background and achievements..."></textarea></div>
+    <div class="form-group"><label>Manifesto / Campaign Statement</label><textarea id="pManifesto" rows="5" placeholder="Describe your goals and plans..."></textarea></div>
+  </div>
+
+  <!-- Election Schedule -->
+  <div class="section-card">
+    <h2>Election Schedule</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Election</th><th>Start</th><th>End</th><th>Status</th></tr></thead>
+        <tbody id="electionSchedule"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="flex gap-3">
+    <button class="btn btn-primary" onclick="saveProfile()">Save Changes</button>
+    <a href="candidate-dashboard.html" class="btn btn-secondary">Back to Dashboard</a>
+  </div>
+  <div class="success-msg" id="successMsg">Profile saved successfully.</div>
+</div>
+
+<script>
+  let candidateId = null;
+  let voterId = null;
+
+  async function loadProfile() {
+    const userId = parseInt(localStorage.getItem('userId') || '0');
+    if (!userId) { location.href = 'login.html'; return; }
+
+    const [cRes, vRes, eRes] = await Promise.all([
+      fetch('/api/admin/candidates'),
+      fetch('/api/admin/voters'),
+      fetch('/api/elections')
+    ]);
+    const candidates = await cRes.json();
+    const voters = await vRes.json();
+    const elections = await eRes.json();
+
+    const my = candidates.find(c => c.userId === userId);
+    const myVoter = voters.find(v => v.userId === userId);
+
+    if (my) {
+      candidateId = my.id;
+      const initials = my.name.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+      document.getElementById('profileInitials').textContent = initials;
+      document.getElementById('profileName').textContent = my.name;
+      const badgeClass = my.status === 'Approved' ? 'badge-active' : my.status === 'Rejected' ? 'badge-closed' : 'badge-draft';
+      document.getElementById('profileStatus').innerHTML = `<span class="badge ${badgeClass}">${my.status}</span>`;
+      document.getElementById('pParty').value = my.party ?? '';
+      document.getElementById('pBio').value = my.bio ?? '';
+      document.getElementById('pManifesto').value = my.manifesto ?? '';
+    }
+
+    if (myVoter) {
+      voterId = myVoter.id;
+      document.getElementById('pFirstName').value = myVoter.firstName ?? '';
+      document.getElementById('pLastName').value = myVoter.lastName ?? '';
+      document.getElementById('pPhone').value = myVoter.phone ?? '';
+      document.getElementById('pAddress').value = myVoter.address ?? '';
+    }
+
+    // election schedule
+    const tbody = document.getElementById('electionSchedule');
+    tbody.innerHTML = '';
+    const myElections = my ? elections.filter(e => e.id === my.electionId) : [];
+    if (!myElections.length) {
+      tbody.innerHTML = '<tr><td colspan="4" class="text-muted" style="text-align:center;padding:16px;">Not assigned to any election</td></tr>';
+    } else {
+      myElections.forEach(e => {
+        const tr = document.createElement('tr');
+        const badgeClass = e.status === 'Open' ? 'badge-active' : 'badge-closed';
+        tr.innerHTML = `<td><strong>${e.title}</strong></td><td class="text-muted">${new Date(e.startDate).toLocaleDateString()}</td><td class="text-muted">${new Date(e.endDate).toLocaleDateString()}</td><td><span class="badge ${badgeClass}">${e.status}</span></td>`;
+        tbody.appendChild(tr);
+      });
+    }
+  }
+
+  async function saveProfile() {
+    const saves = [];
+
+    // save voter info
+    if (voterId) {
+      saves.push(fetch(`/api/admin/voters/${voterId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          firstName: document.getElementById('pFirstName').value,
+          lastName: document.getElementById('pLastName').value,
+          phone: document.getElementById('pPhone').value,
+          address: document.getElementById('pAddress').value,
+          nationalId: '', gender: '', dateOfBirth: ''
+        })
+      }));
+    }
+
+    // save candidate info
+    if (candidateId) {
+      const cRes = await fetch(`/api/admin/candidates/${candidateId}`);
+      const existing = await cRes.json();
+      saves.push(fetch(`/api/admin/candidates/${candidateId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...existing,
+          party: document.getElementById('pParty').value,
+          bio: document.getElementById('pBio').value,
+          manifesto: document.getElementById('pManifesto').value
+        })
+      }));
+    }
+
+    await Promise.all(saves);
+    const msg = document.getElementById('successMsg');
+    msg.style.display = 'block';
+    setTimeout(() => { msg.style.display = 'none'; }, 3000);
+    await loadProfile();
+  }
+
+  loadProfile();
+</script>
+</body>
+</html>

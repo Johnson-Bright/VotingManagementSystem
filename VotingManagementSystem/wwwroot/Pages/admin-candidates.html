@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Manage Candidates — VoteMS Admin</title>
+  <link rel="stylesheet" href="../styles.css?v=4"/>
+  <style>.cand-initials { width:36px; height:36px; border-radius:8px; background:#EFF6FF; color:var(--accent); font-family:'Syne',sans-serif; font-weight:800; font-size:0.85rem; display:flex; align-items:center; justify-content:center; flex-shrink:0; border:1px solid #BFDBFE; }</style>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="sidebar-logo"><div class="dot"></div> VoteMS</div>
+  <div class="sidebar-section">Overview</div>
+  <a href="admin-dashboard.html" class="sidebar-link">Dashboard</a>
+  <a href="admin-elections.html" class="sidebar-link">Elections</a>
+  <a href="admin-voters.html" class="sidebar-link">Voters</a>
+  <a href="admin-candidates.html" class="sidebar-link active">Candidates</a>
+  <div class="sidebar-section">Reports</div>
+  <a href="results.html?admin=1" class="sidebar-link">Results</a>
+  <a href="admin-reports.html" class="sidebar-link">Reports</a>
+  <div class="sidebar-footer">
+    <div style="font-size:0.82rem;color:var(--muted);padding:0 12px 10px;">Admin</div>
+    <a href="login.html" class="sidebar-link" onclick="localStorage.clear();sessionStorage.clear()">Sign out</a>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="flex justify-between items-center mb-4">
+    <div><h1>Manage Candidates</h1><p class="subtitle">Approve, update, and remove candidate registrations</p></div>
+    <button class="btn btn-primary" onclick="document.getElementById('addModal').classList.add('open')">+ Add Candidate</button>
+  </div>
+
+  <div class="stats-grid mb-4">
+    <div class="stat-card"><div class="stat-label">Total</div><div class="stat-value" id="totalCandidates" style="color:var(--accent);">—</div></div>
+    <div class="stat-card"><div class="stat-label">Pending</div><div class="stat-value" id="pendingCandidates" style="color:var(--amber);">—</div></div>
+    <div class="stat-card"><div class="stat-label">Approved</div><div class="stat-value" id="approvedCandidates" style="color:var(--green);">—</div></div>
+  </div>
+
+  <h2 style="margin-bottom:12px;">Pending Approval</h2>
+  <div class="table-wrap mb-2">
+    <table>
+      <thead><tr><th>Candidate</th><th>Party</th><th>Election</th><th>Applied</th><th>Actions</th></tr></thead>
+      <tbody id="pendingBody"></tbody>
+    </table>
+  </div>
+  <div class="pagination" id="pendingPager"></div>
+
+  <div style="margin-top:28px;" class="flex justify-between items-center mb-3">
+    <h2 style="margin:0;">All Candidates</h2>
+    <select id="filterElection" style="width:auto;" onchange="onFilter()"><option value="">All Elections</option></select>
+  </div>
+  <div class="table-wrap mb-2">
+    <table>
+      <thead><tr><th>Candidate</th><th>Party</th><th>Election</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody id="allBody"></tbody>
+    </table>
+  </div>
+  <div class="pagination" id="allPager"></div>
+</main>
+
+<!-- Add Modal -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal">
+    <h2>Add Candidate</h2>
+    <div class="form-group"><label>Full Name</label><input id="addName" type="text" placeholder="Candidate's full name"/></div>
+    <div class="form-group"><label>Party / Affiliation</label><input id="addParty" type="text" placeholder="Party or Independent"/></div>
+    <div class="form-group"><label>Bio</label><textarea id="addBio" rows="2" placeholder="Short background..."></textarea></div>
+    <div class="form-group"><label>Manifesto</label><textarea id="addManifesto" rows="2" placeholder="Campaign goals..."></textarea></div>
+    <div class="form-group"><label>Election</label><select id="addElection"></select></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('addModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="addCandidate()">Add Candidate</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <h2>Edit Candidate</h2>
+    <input type="hidden" id="editId"/>
+    <div class="form-group"><label>Full Name</label><input id="editName" type="text"/></div>
+    <div class="form-group"><label>Party / Affiliation</label><input id="editParty" type="text"/></div>
+    <div class="form-group"><label>Bio</label><textarea id="editBio" rows="2"></textarea></div>
+    <div class="form-group"><label>Manifesto</label><textarea id="editManifesto" rows="2"></textarea></div>
+    <div class="form-group"><label>Election</label><select id="editElection"></select></div>
+    <div class="form-group"><label>Status</label>
+      <select id="editStatus"><option value="Pending">Pending</option><option value="Approved">Approved</option><option value="Rejected">Rejected</option></select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('editModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEdit()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const PAGE_SIZE = 3;
+  let allCandidates = [], elections = [], positions = [];
+  let filteredAll = [], pendingPage = 1, allPage = 1;
+
+  document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); }));
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+  function electionName(id) { return elections.find(e => e.id === id)?.title ?? (id ? 'Election #' + id : '—'); }
+  function initials(name) { return name.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase(); }
+
+  function buildPager(containerId, total, page, onPage) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = '';
+    const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+
+    const prev = document.createElement('button');
+    prev.className = 'pg-btn pg-arrow'; prev.innerHTML = '&#8249;';
+    prev.disabled = page === 1;
+    prev.onclick = () => { if (page > 1) onPage(page - 1); };
+    container.appendChild(prev);
+
+    for (let i = 1; i <= totalPages; i++) {
+      const btn = document.createElement('button');
+      btn.className = 'pg-btn' + (i === page ? ' active' : '');
+      btn.textContent = i;
+      btn.onclick = () => onPage(i);
+      container.appendChild(btn);
+    }
+
+    const next = document.createElement('button');
+    next.className = 'pg-btn pg-arrow-next'; next.innerHTML = '&#8250;';
+    next.disabled = page === totalPages;
+    next.onclick = () => { if (page < totalPages) onPage(page + 1); };
+    container.appendChild(next);
+
+    const info = document.createElement('span');
+    info.className = 'pg-info';
+    const start = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
+    const end = Math.min(page * PAGE_SIZE, total);
+    info.textContent = total === 0 ? 'No records' : `${start}–${end} of ${total}`;
+    container.appendChild(info);
+  }
+
+  function renderPending() {
+    const pending = allCandidates.filter(c => c.status === 'Pending');
+    const slice = pending.slice((pendingPage - 1) * PAGE_SIZE, pendingPage * PAGE_SIZE);
+    const tbody = document.getElementById('pendingBody');
+    tbody.innerHTML = '';
+    if (!pending.length) {
+      tbody.innerHTML = '<tr><td colspan="5" class="text-muted" style="text-align:center;padding:16px;">No pending candidates</td></tr>';
+    } else {
+      slice.forEach(c => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td><div class="flex items-center gap-3"><div class="cand-initials">${initials(c.name)}</div><strong>${c.name}</strong></div></td><td class="text-muted">${c.party ?? '—'}</td><td class="text-muted">${electionName(c.electionId)}</td><td class="text-muted">${new Date(c.createdAt).toLocaleDateString()}</td><td><div style="display:flex;gap:6px;"><button class="btn btn-success btn-sm" onclick="approve(${c.id})">Approve</button><button class="btn btn-danger btn-sm" onclick="reject(${c.id})">Reject</button></div></td>`;
+        tbody.appendChild(tr);
+      });
+    }
+    buildPager('pendingPager', pending.length, pendingPage, p => { pendingPage = p; renderPending(); });
+  }
+
+  function onFilter() {
+    const filterVal = parseInt(document.getElementById('filterElection').value) || 0;
+    filteredAll = filterVal ? allCandidates.filter(c => c.electionId === filterVal) : [...allCandidates];
+    allPage = 1; renderAll();
+  }
+
+  function renderAll() {
+    const slice = filteredAll.slice((allPage - 1) * PAGE_SIZE, allPage * PAGE_SIZE);
+    const tbody = document.getElementById('allBody');
+    tbody.innerHTML = '';
+    if (!filteredAll.length) {
+      tbody.innerHTML = '<tr><td colspan="5" class="text-muted" style="text-align:center;padding:16px;">No candidates found</td></tr>';
+    } else {
+      slice.forEach(c => {
+        const badgeClass = c.status === 'Approved' ? 'badge-active' : c.status === 'Rejected' ? 'badge-closed' : 'badge-draft';
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td><div class="flex items-center gap-3"><div class="cand-initials">${initials(c.name)}</div><strong>${c.name}</strong></div></td><td class="text-muted">${c.party ?? '—'}</td><td class="text-muted">${electionName(c.electionId)}</td><td><span class="badge ${badgeClass}">${c.status}</span></td><td><div style="display:flex;gap:6px;"><button class="btn btn-secondary btn-sm" onclick="openEdit(${c.id})">Edit</button><button class="btn btn-danger btn-sm" onclick="removeCandidate(${c.id})">Remove</button></div></td>`;
+        tbody.appendChild(tr);
+      });
+    }
+    buildPager('allPager', filteredAll.length, allPage, p => { allPage = p; renderAll(); });
+  }
+
+  async function loadData() {
+    const [cRes, eRes, pRes] = await Promise.all([fetch('/api/admin/candidates'), fetch('/api/admin/elections'), fetch('/api/admin/positions')]);
+    allCandidates = await cRes.json(); elections = await eRes.json(); positions = await pRes.json();    filteredAll = [...allCandidates];
+
+    document.getElementById('totalCandidates').textContent = allCandidates.length;
+    document.getElementById('pendingCandidates').textContent = allCandidates.filter(c => c.status === 'Pending').length;
+    document.getElementById('approvedCandidates').textContent = allCandidates.filter(c => c.status === 'Approved').length;
+
+    const filterEl = document.getElementById('filterElection');
+    filterEl.innerHTML = '<option value="">All Elections</option>';
+    elections.forEach(e => filterEl.appendChild(new Option(e.title, e.id)));
+
+    ['addElection','editElection'].forEach(id => { const s = document.getElementById(id); s.innerHTML = '<option value="">— None —</option>'; elections.forEach(e => s.appendChild(new Option(e.title, e.id))); });
+
+    pendingPage = 1; allPage = 1;
+    renderPending(); renderAll();
+  }
+
+  async function approve(id) { await fetch(`/api/admin/candidates/approve/${id}`, { method: 'POST' }); await loadData(); }
+  async function reject(id) { await fetch(`/api/admin/candidates/reject/${id}`, { method: 'POST' }); await loadData(); }
+
+  async function addCandidate() {
+    const payload = { name: document.getElementById('addName').value.trim(), party: document.getElementById('addParty').value.trim(), bio: document.getElementById('addBio').value.trim(), manifesto: document.getElementById('addManifesto').value.trim(), electionId: parseInt(document.getElementById('addElection').value) || null, status: 'Approved' };
+    if (!payload.name) { alert('Name is required'); return; }
+    await fetch('/api/admin/candidates', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    closeModal('addModal'); await loadData();
+  }
+
+  async function openEdit(id) {
+    const c = allCandidates.find(x => x.id === id); if (!c) return;
+    document.getElementById('editId').value = c.id;
+    document.getElementById('editName').value = c.name;
+    document.getElementById('editParty').value = c.party ?? '';
+    document.getElementById('editBio').value = c.bio ?? '';
+    document.getElementById('editManifesto').value = c.manifesto ?? '';
+    document.getElementById('editElection').value = c.electionId ?? '';
+    document.getElementById('editStatus').value = c.status;
+    document.getElementById('editModal').classList.add('open');
+  }
+
+  async function saveEdit() {
+    const id = document.getElementById('editId').value;
+    const payload = { name: document.getElementById('editName').value.trim(), party: document.getElementById('editParty').value.trim(), bio: document.getElementById('editBio').value.trim(), manifesto: document.getElementById('editManifesto').value.trim(), electionId: parseInt(document.getElementById('editElection').value) || null, status: document.getElementById('editStatus').value };
+    await fetch(`/api/admin/candidates/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    closeModal('editModal'); await loadData();
+  }
+
+  async function removeCandidate(id) {
+    if (!confirm('Remove this candidate?')) return;
+    await fetch(`/api/admin/candidates/${id}`, { method: 'DELETE' });
+    await loadData();
+  }
+
+  loadData();
+</script>
+</body>
+</html>

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cast Vote — VoteMS</title>
+  <link rel="stylesheet" href="../styles.css?v=4"/>
+  <style>
+    .candidate-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; margin-bottom: 28px; }
+    .candidate-card {
+      background: var(--card); border: 2px solid var(--border);
+      border-radius: var(--radius-lg); padding: 20px;
+      cursor: pointer; transition: all 0.2s; position: relative;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    }
+    .candidate-card:hover { border-color: var(--accent); box-shadow: 0 4px 16px rgba(37,99,235,0.1); }
+    .candidate-card.selected { border-color: var(--accent); background: #EFF6FF; }
+    .candidate-card.selected::after {
+      content: ''; position: absolute; top: 14px; right: 14px;
+      width: 22px; height: 22px; background: var(--accent); border-radius: 50%;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3'%3E%3Cpath d='M5 13l4 4L19 7'/%3E%3C/svg%3E");
+      background-size: 14px; background-repeat: no-repeat; background-position: center;
+    }
+    .candidate-initials {
+      width: 52px; height: 52px; border-radius: 12px;
+      background: #EFF6FF; color: var(--accent);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.1rem;
+      margin-bottom: 12px; border: 1px solid #BFDBFE;
+    }
+    .candidate-name { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; margin-bottom: 4px; }
+    .candidate-party { font-size: 0.8rem; color: var(--accent); font-weight: 500; margin-bottom: 8px; }
+    .candidate-bio { font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
+    .confirm-box { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; display: none; box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
+    .confirm-box.show { display: block; }
+    .confirm-name { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 700; color: var(--accent); }
+    .breadcrumb { font-size: 0.82rem; color: var(--muted); margin-bottom: 22px; display: flex; align-items: center; gap: 6px; }
+    .breadcrumb a { color: var(--muted); text-decoration: none; }
+    .breadcrumb a:hover { color: var(--text); }
+    .empty-state { text-align: center; padding: 40px 20px; color: var(--muted); }
+  </style>
+</head>
+<body>
+<nav>
+  <a href="../index.html" class="nav-logo"><div class="dot"></div> VoteMS</a>
+  <div class="nav-links" id="navLinks"></div>
+</nav>
+
+<div class="page" style="max-width:900px;">
+  <div class="breadcrumb">
+    <a href="voter-dashboard.html">&#8592; Elections</a>
+    <span>/</span>
+    <span id="electionLabel">Loading...</span>
+  </div>
+
+  <h1 id="electionTitle" style="margin-bottom:6px;">Cast Your Vote</h1>
+  <p class="subtitle">Select one candidate. This action cannot be undone.</p>
+
+  <div class="alert alert-warning" style="margin-bottom:22px;">
+    You can only vote once per election. Please review your choice carefully before submitting.
+  </div>
+
+  <h2>Select a candidate</h2>
+  <div class="candidate-grid" id="candidateGrid">
+    <p class="text-muted text-sm">Loading candidates...</p>
+  </div>
+
+  <div class="confirm-box" id="confirmBox">
+    <h2 style="margin-bottom:6px;">Confirm your vote</h2>
+    <p class="text-muted text-sm mb-3">You are about to vote for:</p>
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px 18px;margin-bottom:18px;">
+      <div class="confirm-name" id="selectedName">—</div>
+      <div class="text-sm text-muted" id="selectedParty">—</div>
+    </div>
+    <div class="alert alert-danger">This vote is final and cannot be changed once submitted.</div>
+    <div class="flex gap-3">
+      <button class="btn btn-secondary" onclick="clearSelection()">&#8592; Change selection</button>
+      <button class="btn btn-primary" style="flex:1;justify-content:center;" id="submitVoteBtn">Submit vote</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let selected = null;
+  let currentElectionId = null;
+
+  function buildNav() {
+    const role = localStorage.getItem('role') || sessionStorage.getItem('role') || '';
+    const nav = document.getElementById('navLinks');
+    if (role === 'Candidate') {
+      nav.innerHTML = `
+        <a href="candidate-dashboard.html">Dashboard</a>
+        <a href="voter-dashboard.html">Elections</a>
+        <a href="results.html">Results</a>
+        <a href="candidate-profile.html">My Profile</a>
+        <a href="login.html" onclick="localStorage.clear();sessionStorage.clear()">Sign out</a>`;
+    } else {
+      nav.innerHTML = `
+        <a href="voter-dashboard.html">Elections</a>
+        <a href="results.html">Results</a>
+        <a href="login.html" onclick="localStorage.clear();sessionStorage.clear()">Sign out</a>`;
+    }
+  }
+
+  async function init() {
+    const params = new URLSearchParams(location.search);
+    const preselect = parseInt(params.get('electionId')) || 0;
+
+    const res = await fetch('/api/elections');
+    const list = await res.json();
+
+    if (!list.length) { document.getElementById('electionTitle').textContent = 'No elections available'; return; }
+
+    currentElectionId = preselect || list[0].id;
+    const election = list.find(e => e.id === currentElectionId) || list[0];
+    document.getElementById('electionTitle').textContent = election.title;
+    document.getElementById('electionLabel').textContent = election.title;
+
+    await loadCandidates(currentElectionId);
+  }
+
+  async function loadCandidates(electionId) {
+    const res = await fetch(`/api/elections/${electionId}/candidates`);
+    const list = await res.json();
+    const grid = document.getElementById('candidateGrid');
+    grid.innerHTML = '';
+
+    if (!list.length) {
+      grid.innerHTML = '<div class="empty-state"><p>No approved candidates for this election yet.</p></div>';
+      return;
+    }
+
+    list.forEach(c => {
+      const initials = c.name.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+      const card = document.createElement('div');
+      card.className = 'candidate-card';
+      card.innerHTML = `
+        <div class="candidate-initials">${initials}</div>
+        <div class="candidate-name">${c.name}</div>
+        <div class="candidate-party">${c.party ?? ''}</div>
+        <div class="candidate-bio">${c.manifesto ?? c.bio ?? ''}</div>`;
+      card.addEventListener('click', () => selectCandidate(card, c));
+      grid.appendChild(card);
+    });
+  }
+
+  function selectCandidate(el, candidate) {
+    document.querySelectorAll('.candidate-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    selected = candidate;
+    document.getElementById('selectedName').textContent = candidate.name;
+    document.getElementById('selectedParty').textContent = candidate.party || '';
+    document.getElementById('confirmBox').classList.add('show');
+    document.getElementById('confirmBox').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function clearSelection() {
+    document.querySelectorAll('.candidate-card').forEach(c => c.classList.remove('selected'));
+    document.getElementById('confirmBox').classList.remove('show');
+    selected = null;
+  }
+
+  document.getElementById('submitVoteBtn').addEventListener('click', async () => {
+    const voterId = parseInt(localStorage.getItem('userId') || '0');
+    if (!voterId) { alert('You must be logged in as a voter to cast a vote.'); location.href = 'login.html'; return; }
+    if (!selected) { alert('Please select a candidate.'); return; }
+
+    const btn = document.getElementById('submitVoteBtn');
+    btn.disabled = true; btn.textContent = 'Submitting...';
+
+    const res = await fetch('/api/votes/cast', {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json' },
+      body: JSON.stringify({ voterId, candidateId: selected.id })
+    });
+
+    if (!res.ok) {
+      btn.disabled = false; btn.textContent = 'Submit vote';
+      alert('Could not cast vote. You may have already voted in this election.');
+      return;
+    }
+    // store vote info for receipt
+    sessionStorage.setItem('lastVoteElection', document.getElementById('electionTitle').textContent);
+    sessionStorage.setItem('lastVoteCandidate', selected.name);
+    sessionStorage.setItem('lastVoteElectionId', currentElectionId);
+    location.href = 'vote-success.html';
+  });
+
+  buildNav();
+  init();
+</script>
+</body>
+</html>

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Manage Elections — VoteMS Admin</title>
+  <link rel="stylesheet" href="../styles.css?v=4"/>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="sidebar-logo"><div class="dot"></div> VoteMS</div>
+  <div class="sidebar-section">Overview</div>
+  <a href="admin-dashboard.html" class="sidebar-link">Dashboard</a>
+  <a href="admin-elections.html" class="sidebar-link active">Elections</a>
+  <a href="admin-voters.html" class="sidebar-link">Voters</a>
+  <a href="admin-candidates.html" class="sidebar-link">Candidates</a>
+  <div class="sidebar-section">Reports</div>
+  <a href="results.html?admin=1" class="sidebar-link">Results</a>
+  <a href="admin-reports.html" class="sidebar-link">Reports</a>
+  <div class="sidebar-footer">
+    <div style="font-size:0.82rem;color:var(--muted);padding:0 12px 10px;">Admin</div>
+    <a href="login.html" class="sidebar-link" onclick="localStorage.clear();sessionStorage.clear()">Sign out</a>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="flex justify-between items-center mb-4">
+    <div><h1>Manage Elections</h1><p class="subtitle">Create, edit, and control all elections</p></div>
+    <button class="btn btn-primary" onclick="openNew()">+ New Election</button>
+  </div>
+  <div class="table-wrap mb-2">
+    <table>
+      <thead><tr><th>Title</th><th>Status</th><th>Start</th><th>End</th><th>Actions</th></tr></thead>
+      <tbody id="electionsBody"></tbody>
+    </table>
+  </div>
+  <div class="pagination" id="pager"></div>
+</main>
+
+<!-- New Modal -->
+<div class="modal-overlay" id="newModal">
+  <div class="modal">
+    <h2>Create New Election</h2>
+    <p class="text-muted text-sm mb-3">Fill in the details for the new election</p>
+    <div class="form-group"><label>Election Title</label><input id="newTitle" type="text" placeholder="e.g. Student Council President 2025"/></div>
+    <div class="form-group"><label>Description</label><textarea id="newDesc" rows="3" placeholder="Brief description of this election..."></textarea></div>
+    <div class="grid-2">
+      <div class="form-group"><label>Start Date</label><input id="newStart" type="date"/></div>
+      <div class="form-group"><label>End Date</label><input id="newEnd" type="date"/></div>
+    </div>
+    <div class="form-group"><label>Status</label>
+      <select id="newStatus"><option value="Draft">Draft</option><option value="Open">Open</option></select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('newModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="createElection()">Create Election</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <h2>Edit Election</h2>
+    <input type="hidden" id="editId"/>
+    <div class="form-group"><label>Election Title</label><input id="editTitle" type="text"/></div>
+    <div class="form-group"><label>Description</label><textarea id="editDesc" rows="3"></textarea></div>
+    <div class="grid-2">
+      <div class="form-group"><label>Start Date</label><input id="editStart" type="date"/></div>
+      <div class="form-group"><label>End Date</label><input id="editEnd" type="date"/></div>
+    </div>
+    <div class="form-group"><label>Status</label>
+      <select id="editStatus"><option value="Draft">Draft</option><option value="Open">Open</option><option value="Closed">Closed</option></select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('editModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEdit()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const PAGE_SIZE = 3;
+  let allElections = [], currentPage = 1;
+
+  document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); }));
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+  function openNew() { document.getElementById('newModal').classList.add('open'); }
+  function toDateInput(dt) { return dt ? new Date(dt).toISOString().split('T')[0] : ''; }
+
+  function buildPager() {
+    const container = document.getElementById('pager');
+    container.innerHTML = '';
+    const total = allElections.length;
+    const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+
+    const prev = document.createElement('button');
+    prev.className = 'pg-btn pg-arrow'; prev.innerHTML = '&#8249;';
+    prev.disabled = currentPage === 1;
+    prev.onclick = () => { if (currentPage > 1) { currentPage--; renderTable(); } };
+    container.appendChild(prev);
+
+    for (let i = 1; i <= totalPages; i++) {
+      const btn = document.createElement('button');
+      btn.className = 'pg-btn' + (i === currentPage ? ' active' : '');
+      btn.textContent = i;
+      btn.onclick = () => { currentPage = i; renderTable(); };
+      container.appendChild(btn);
+    }
+
+    const next = document.createElement('button');
+    next.className = 'pg-btn pg-arrow-next'; next.innerHTML = '&#8250;';
+    next.disabled = currentPage === totalPages;
+    next.onclick = () => { if (currentPage < totalPages) { currentPage++; renderTable(); } };
+    container.appendChild(next);
+
+    const info = document.createElement('span');
+    info.className = 'pg-info';
+    const start = total === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1;
+    const end = Math.min(currentPage * PAGE_SIZE, total);
+    info.textContent = total === 0 ? 'No records' : `${start}–${end} of ${total}`;
+    container.appendChild(info);
+  }
+
+  function renderTable() {
+    const slice = allElections.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+    const tbody = document.getElementById('electionsBody');
+    tbody.innerHTML = '';
+    if (!allElections.length) {
+      tbody.innerHTML = '<tr><td colspan="5" class="text-muted" style="text-align:center;padding:20px;">No elections yet. Create one!</td></tr>';
+    } else {
+      slice.forEach(e => {
+        const badgeClass = e.status === 'Open' ? 'badge-active' : e.status === 'Draft' ? 'badge-draft' : 'badge-closed';
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${e.title}</strong><div class="text-muted" style="font-size:0.78rem;">${e.description ?? ''}</div></td>
+          <td><span class="badge ${badgeClass}">${e.status}</span></td>
+          <td class="text-muted">${new Date(e.startDate).toLocaleDateString()}</td>
+          <td class="text-muted">${new Date(e.endDate).toLocaleDateString()}</td>
+          <td><div style="display:flex;gap:6px;">
+            <button class="btn btn-secondary btn-sm" onclick="openEdit(${e.id})">Edit</button>
+            <a href="results.html?electionId=${e.id}&admin=1" class="btn btn-success btn-sm">Results</a>
+            <button class="btn btn-danger btn-sm" onclick="deleteElection(${e.id})">Delete</button>
+          </div></td>`;
+        tbody.appendChild(tr);
+      });
+    }
+    buildPager();
+  }
+
+  async function loadElections() {
+    const res = await fetch('/api/admin/elections');
+    allElections = await res.json();
+    currentPage = 1;
+    renderTable();
+  }
+
+  async function createElection() {
+    const payload = { title: document.getElementById('newTitle').value.trim(), description: document.getElementById('newDesc').value.trim(), startDate: document.getElementById('newStart').value, endDate: document.getElementById('newEnd').value, status: document.getElementById('newStatus').value };
+    if (!payload.title || !payload.startDate || !payload.endDate) { alert('Title, start date and end date are required'); return; }
+    const res = await fetch('/api/admin/elections', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    if (!res.ok) { alert('Failed to create election'); return; }
+    closeModal('newModal');
+    document.getElementById('newTitle').value = ''; document.getElementById('newDesc').value = '';
+    await loadElections();
+  }
+
+  async function openEdit(id) {
+    const res = await fetch(`/api/admin/elections/${id}`);
+    const e = await res.json();
+    document.getElementById('editId').value = e.id;
+    document.getElementById('editTitle').value = e.title;
+    document.getElementById('editDesc').value = e.description ?? '';
+    document.getElementById('editStart').value = toDateInput(e.startDate);
+    document.getElementById('editEnd').value = toDateInput(e.endDate);
+    document.getElementById('editStatus').value = e.status;
+    document.getElementById('editModal').classList.add('open');
+  }
+
+  async function saveEdit() {
+    const id = document.getElementById('editId').value;
+    const payload = { title: document.getElementById('editTitle').value.trim(), description: document.getElementById('editDesc').value.trim(), startDate: document.getElementById('editStart').value, endDate: document.getElementById('editEnd').value, status: document.getElementById('editStatus').value };
+    await fetch(`/api/admin/elections/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    closeModal('editModal'); await loadElections();
+  }
+
+  async function deleteElection(id) {
+    if (!confirm('Delete this election? This will also remove all associated votes and candidates.')) return;
+    await fetch(`/api/admin/elections/${id}`, { method: 'DELETE' });
+    await loadElections();
+  }
+
+  loadElections();
+</script>
+</body>
+</html>
