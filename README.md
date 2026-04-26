@@ -2,7 +2,7 @@
 
 A full-stack web-based voting management system built with **ASP.NET Core 10**, **SQLite**, and **Vanilla JavaScript**. Supports multiple user roles, real-time results, candidate management, and administrative control.
 
----
+
 
 ## Tech Stack
 
@@ -16,7 +16,6 @@ A full-stack web-based voting management system built with **ASP.NET Core 10**, 
 | Reports | jsPDF + jsPDF-AutoTable |
 | IDE | Visual Studio 2022 |
 
----
 
 ## Features
 
@@ -35,7 +34,7 @@ A full-stack web-based voting management system built with **ASP.NET Core 10**, 
 - Paginated admin tables (Elections, Voters, Candidates)
 - Vote receipt after successful submission
 
----
+
 
 ## Getting Started
 
@@ -43,20 +42,6 @@ A full-stack web-based voting management system built with **ASP.NET Core 10**, 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download)
 - [Visual Studio 2022](https://visualstudio.microsoft.com/)
 
-### Run the project
-
-1. Clone the repository
-   ```bash
-   git clone https://github.com/YOUR_USERNAME/VotingManagementSystem.git
-   ```
-
-2. Open `VotingManagementSystem.slnx` in Visual Studio
-
-3. Press **F5** to build and run
-
-4. The app starts at **http://localhost:5248**
-
-5. The SQLite database is created automatically on first run with seed data
 
 ### Default Admin Login
 ```
@@ -64,7 +49,7 @@ Email:    admin@votems.com
 Password: admin123
 ```
 
----
+
 
 ## Project Structure
 
@@ -83,7 +68,6 @@ VotingManagementSystem/
 └── appsettings.json      # Configuration (SQLite path)
 ```
 
----
 
 ## Database Schema
 
@@ -97,7 +81,6 @@ VotingManagementSystem/
 | Votes | Voter → Candidate → Election with timestamp |
 | AuditLogs | System activity logging |
 
----
 
 ## Pages
 
@@ -115,14 +98,6 @@ VotingManagementSystem/
 | Admin Candidates | Approve/reject/manage candidates |
 | Admin Reports | Generate PDF/CSV reports |
 
----
 
-## Screenshots
 
-> Add screenshots here after pushing
 
----
-
-## License
-
-This project is for academic/educational purposes.
